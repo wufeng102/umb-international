@@ -204,6 +204,92 @@ body{font-family:var(--font-body);background:var(--cream);color:var(--text);font
   .form-footer{flex-direction:column;align-items:flex-start}
   .auth-wrap{padding:20px}.app-form{padding:18px}
 }
+
+/* ===================== ADMIN PANEL ===================== */
+#admin-shell{display:none;position:fixed;inset:0;z-index:5000;background:var(--cream);overflow-y:auto}
+.adm-topbar{position:sticky;top:0;z-index:100;background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:52px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.atb-logo{display:flex;align-items:center;gap:8px;color:#fff;font-weight:700;font-size:14px}
+.atb-logo img{width:28px;height:28px;border-radius:6px;object-fit:contain}
+.atb-role{background:var(--gold);color:var(--navy);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px}
+.atb-user{font-size:13px;color:rgba(255,255,255,.7)}
+.btn-logout{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:5px 12px;font-size:12px;font-family:var(--font-body);cursor:pointer}
+.btn-logout:hover{background:rgba(255,255,255,.2)}
+.adm-layout{display:flex;min-height:calc(100vh - 52px)}
+.adm-sidebar{width:220px;background:var(--white);border-right:1px solid var(--border);flex-shrink:0;padding:16px 0}
+.adm-sidebar-sec{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-light);padding:10px 18px 5px}
+.anav{display:flex;align-items:center;gap:9px;padding:9px 18px;font-size:13px;color:var(--text-mid);cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.anav:hover{background:var(--cream);color:var(--navy)}
+.anav.active{background:var(--cream);color:var(--navy);font-weight:600;border-left-color:var(--gold)}
+.anav i{font-size:16px;flex-shrink:0}
+.adm-main{flex:1;padding:28px;overflow-x:hidden}
+.apage{display:none}.apage.active{display:block}
+.apage-title{font-family:'Syne',sans-serif;font-size:22px;color:var(--navy);margin-bottom:4px}
+.apage-sub{font-size:13px;color:var(--text-mid);margin-bottom:22px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+.sc{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.sc-num{font-family:'Syne',sans-serif;font-size:30px;color:var(--navy);line-height:1}
+.sc-lbl{font-size:12px;color:var(--text-mid);margin-top:5px}
+.sc-icon{position:absolute;right:16px;top:16px;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.sci-blue{background:#e8eef8;color:var(--navy)}.sci-gold{background:#fef3e0;color:var(--gold)}.sci-green{background:var(--success-bg);color:var(--success)}.sci-red{background:var(--error-bg);color:var(--error)}.sci-purple{background:#f0e8f8;color:#7a1b9a}
+.tbl-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.tbl-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.tbl-hdr h3{font-size:14px;font-weight:700;color:var(--navy)}
+.tbl-search{padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:13px;outline:none;width:200px}
+.tbl-search:focus{border-color:var(--navy-light)}
+.bsm{padding:6px 14px;border-radius:7px;font-family:var(--font-body);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:5px;border:none;text-decoration:none}
+.bsm.navy{background:var(--navy);color:#fff}.bsm.navy:hover{background:var(--navy-light)}
+.bsm.gold{background:var(--gold);color:var(--navy)}.bsm.gold:hover{background:var(--gold-light)}
+.bsm.green{background:var(--success);color:#fff}.bsm.red{background:var(--error);color:#fff}
+.bsm.outline{background:transparent;border:1.5px solid var(--border);color:var(--text-mid)}.bsm.outline:hover{border-color:var(--navy);color:var(--navy)}
+table.at{width:100%;border-collapse:collapse;font-size:13px}
+table.at th{background:var(--cream);padding:10px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-mid);border-bottom:1px solid var(--border);white-space:nowrap}
+table.at td{padding:10px 14px;border-bottom:1px solid #f0ede8;vertical-align:middle}
+table.at tr:last-child td{border-bottom:none}
+table.at tr:hover td{background:var(--cream)}
+table.at input[type=checkbox]{accent-color:var(--navy);width:15px;height:15px;cursor:pointer}
+.abadge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.ab-sub{background:#e8eef8;color:var(--navy)}.ab-rev{background:#fff3cd;color:#856404}.ab-pass{background:var(--success-bg);color:var(--success)}.ab-fail{background:var(--error-bg);color:var(--error)}.ab-int{background:#e8d5f5;color:#6a1b9a}.ab-acc{background:var(--success-bg);color:var(--success);font-weight:700}.ab-wait{background:#fff3cd;color:#856404}.ab-rej{background:var(--error-bg);color:var(--error)}
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:7000;align-items:center;justify-content:center}
+.modal-ov.open{display:flex}
+.modal-box{background:var(--white);border-radius:var(--radius-lg);padding:28px;width:90%;max-width:660px;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.modal-box h3{font-family:'Syne',sans-serif;font-size:18px;color:var(--navy);margin-bottom:3px}
+.modal-box .msub{font-size:13px;color:var(--text-mid);margin-bottom:18px}
+.mc{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-light);margin-top:-4px;line-height:1}
+.dr{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #f0ede8;font-size:13px}
+.dr:last-child{border-bottom:none}
+.dr-l{color:var(--text-light);min-width:150px;flex-shrink:0;font-size:12px}
+.dr-v{color:var(--text);font-weight:500}
+.gem-box{background:linear-gradient(135deg,var(--navy),#1a337e);border-radius:var(--radius);padding:16px;color:#fff;margin:14px 0}
+.gem-box h4{font-size:12px;font-weight:700;margin-bottom:6px;color:var(--gold-light);text-transform:uppercase;letter-spacing:.5px}
+.gem-box p{font-size:13px;line-height:1.6;opacity:.85}
+.sbar-item{margin-bottom:9px}
+.sbar-item .sbi-top{display:flex;justify-content:space-between;font-size:12px;color:var(--text-mid);margin-bottom:3px}
+.sbar-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.sbar-fill{height:100%;background:linear-gradient(90deg,var(--navy),var(--gold));border-radius:3px;transition:width .6s ease}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0;display:inline-block}
+.toggle input{opacity:0;width:0;height:0}
+.tslider{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:.25s}
+.tslider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.25s}
+.toggle input:checked+.tslider{background:var(--success)}
+.toggle input:checked+.tslider::before{transform:translateX(16px)}
+.elig-fac{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px}
+.elig-fac-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--cream);border-bottom:1px solid var(--border)}
+.elig-fac-hdr span{font-size:13px;font-weight:700;color:var(--navy)}
+.elig-prog{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid #f5f2ec;font-size:13px;color:var(--text)}
+.elig-prog:last-child{border-bottom:none}
+.schol-row{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px}
+.schol-row .sr-name{font-size:14px;font-weight:500}
+.int-sec{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.int-sec h4{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px}
+.sopt{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;background:var(--white);color:var(--text-mid)}
+.sopt:hover{border-color:var(--navy);color:var(--navy)}
+.sopt.sel{background:var(--navy);border-color:var(--navy);color:#fff}
+.adm-login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--navy)}
+.adm-login-box{background:var(--white);border-radius:var(--radius-lg);padding:36px;width:360px;box-shadow:var(--shadow-lg)}
+.adm-login-box h2{font-family:'Syne',sans-serif;font-size:22px;color:var(--navy);margin-bottom:4px}
+.adm-login-box p{font-size:13px;color:var(--text-mid);margin-bottom:22px}
+@media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}.adm-sidebar{display:none}}
+
 </style>
 </head>
 <body>
@@ -810,10 +896,11 @@ function goToStatus(){
 }
 
 // API
-async function api(action,data){
+async function api(action,data,opts){
   try{
     const body={action,data};
-    if(S.token)body.token=S.token;
+    const tok=(opts&&opts.token)?opts.token:S.token;
+    if(tok)body.token=tok;
     const r=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     return await r.json();
   }catch(e){console.error(e);return{success:false,message:'Connection error. Please try again.'};}
@@ -830,11 +917,287 @@ function toast(msg,type){
 }
 
 // INIT
-window.addEventListener('DOMContentLoaded',()=>{
-  buildNats();buildYears();loadEligibleProgs();
-  showSec('instructions');setStep(1);
-  if(S.token){showSec('apply');document.getElementById('authTabs').style.display='none';showPanel('part1');setStep(3);}
+
+// Hash-based admin entry point
+function checkAdminHash(){
+  if(location.hash==='#staff'){
+    document.getElementById('admin-shell').style.display='block';
+    document.body.style.overflow='hidden';
+  }
+}
+window.addEventListener('hashchange', checkAdminHash);
+window.addEventListener('DOMContentLoaded', function(){
+  buildNats(); buildYears(); loadEligibleProgs();
+  showSec('instructions'); setStep(1);
+  if(S.token){
+    showSec('apply');
+    document.getElementById('authTabs').style.display='none';
+    showPanel('part1'); setStep(3);
+  }
+  checkAdminHash();
+  // Restore staff session if exists
+  const st=localStorage.getItem('umb_staff_token');
+  const sr=localStorage.getItem('umb_staff_role');
+  const sn=localStorage.getItem('umb_staff_name');
+  if(st&&sr&&sn&&location.hash==='#staff'){
+    ADM.token=st; ADM.role=sr; ADM.name=sn;
+    showAdminDashboard(sr,sn);
+  }
 });
+
 </script>
+
+<!-- ===================== ADMIN SHELL ===================== -->
+<div id="admin-shell">
+
+  <!-- LOGIN -->
+  <div id="adm-login" class="adm-login-wrap">
+    <div class="adm-login-box">
+      <h2>Staff Login</h2>
+      <p>UMB Global Engagement — Internal Access</p>
+      <div class="ff"><label>Email <span class="req">*</span></label><input type="email" id="aml_email" placeholder="admin@ge.umb.ac.id"></div>
+      <div class="ff"><label>Password <span class="req">*</span></label><input type="password" id="aml_pass"></div>
+      <div class="ff"><label>Role</label>
+        <select id="aml_role">
+          <option value="admin">Admin</option>
+          <option value="interviewer">Interviewer</option>
+          <option value="head">Head UGE</option>
+        </select>
+      </div>
+      <button class="btn-nav" style="width:100%;justify-content:center;margin-top:4px" onclick="doStaffLogin()">Sign In <i class="ti ti-arrow-right"></i></button>
+      <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-light)"><a href="#" onclick="closeAdmin()" style="color:var(--navy-light)">← Back to applicant portal</a></p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="adm-dashboard" style="display:none">
+    <!-- TOPBAR -->
+    <div class="adm-topbar">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="atb-logo">
+          <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjWBlvPi6KKpw-cvyLpV9dnfYMC6PWRoCLhv4-pM370Hhc_R3qNXVhMTQU4PblXza5d2knnOIK6WpCQ87whfM_9YI_2VyIJtn2fTI8ZvetDYVtzWlkooE3JgGPOFRO2hPeGvo94GNgqGLGhhNlMv4rBgsJrj3K9gD56Ol25NHCF0BBIvTHNk17x0DXSKjgr/s320/Logo%20UMB%20Baru.png" alt="UMB">
+          UMB Admissions
+        </div>
+        <span class="atb-role" id="adm-role-badge">Admin</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="atb-user" id="adm-user-name"></span>
+        <button class="btn-logout" onclick="doStaffLogout()"><i class="ti ti-logout"></i> Sign Out</button>
+      </div>
+    </div>
+
+    <!-- LAYOUT -->
+    <div class="adm-layout">
+
+      <!-- SIDEBAR -->
+      <div class="adm-sidebar" id="adm-sidebar">
+        <!-- Admin nav -->
+        <div id="nav-admin-group">
+          <div class="adm-sidebar-sec">Admin</div>
+          <div class="anav active" onclick="showAPage('dashboard')" id="nav-dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+          <div class="anav" onclick="showAPage('applicants')" id="nav-applicants"><i class="ti ti-users"></i> All Applicants</div>
+          <div class="anav" onclick="showAPage('programs')" id="nav-programs"><i class="ti ti-book-2"></i> Programme Eligibility</div>
+          <div class="anav" onclick="showAPage('scholarships')" id="nav-scholarships"><i class="ti ti-award"></i> Scholarships</div>
+          <div class="anav" onclick="showAPage('staff')" id="nav-staff"><i class="ti ti-user-plus"></i> Add Staff</div>
+        </div>
+        <!-- Interviewer nav -->
+        <div id="nav-int-group" style="display:none">
+          <div class="adm-sidebar-sec">Interviewer</div>
+          <div class="anav active" onclick="showAPage('int-queue')" id="nav-int-queue"><i class="ti ti-list-check"></i> Interview Queue</div>
+        </div>
+        <!-- Head UGE nav -->
+        <div id="nav-head-group" style="display:none">
+          <div class="adm-sidebar-sec">Head UGE</div>
+          <div class="anav active" onclick="showAPage('head-summary')" id="nav-head-summary"><i class="ti ti-chart-bar"></i> Summary</div>
+          <div class="anav" onclick="showAPage('head-decisions')" id="nav-head-decisions"><i class="ti ti-gavel"></i> Final Decisions</div>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <div class="adm-main">
+
+        <!-- ===== DASHBOARD ===== -->
+        <div class="apage active" id="apage-dashboard">
+          <div class="apage-title">Dashboard</div>
+          <div class="apage-sub">Overview of all applications</div>
+          <div class="stat-grid" id="stat-grid">
+            <div class="sc"><div class="sc-icon sci-blue"><i class="ti ti-inbox"></i></div><div class="sc-num" id="st-total">—</div><div class="sc-lbl">Total Applications</div></div>
+            <div class="sc"><div class="sc-icon sci-gold"><i class="ti ti-clock"></i></div><div class="sc-num" id="st-review">—</div><div class="sc-lbl">Pending Review</div></div>
+            <div class="sc"><div class="sc-icon sci-purple"><i class="ti ti-microphone"></i></div><div class="sc-num" id="st-interview">—</div><div class="sc-lbl">In Interview</div></div>
+            <div class="sc"><div class="sc-icon sci-green"><i class="ti ti-circle-check"></i></div><div class="sc-num" id="st-accepted">—</div><div class="sc-lbl">Accepted</div></div>
+          </div>
+          <div class="tbl-wrap">
+            <div class="tbl-hdr">
+              <h3>Recent Applications</h3>
+              <button class="bsm navy" onclick="showAPage('applicants')"><i class="ti ti-arrow-right"></i> View All</button>
+            </div>
+            <div style="overflow-x:auto"><table class="at" id="tbl-recent"><thead><tr><th>Name</th><th>Country</th><th>Programme</th><th>Status</th><th>Date</th></tr></thead><tbody id="tbody-recent"><tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:24px">Loading...</td></tr></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- ===== ALL APPLICANTS ===== -->
+        <div class="apage" id="apage-applicants">
+          <div class="apage-title">All Applicants</div>
+          <div class="apage-sub">Review, approve, or reject applications</div>
+          <div class="tbl-wrap">
+            <div class="tbl-hdr">
+              <h3>Applications</h3>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <input type="text" class="tbl-search" id="appl-search" placeholder="Search name / email..." oninput="filterApplicants()">
+                <select id="appl-filter" onchange="filterApplicants()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:13px;outline:none">
+                  <option value="">All Status</option>
+                  <option value="SUBMITTED">Submitted</option>
+                  <option value="ADMIN_REVIEW">In Review</option>
+                  <option value="PASSED_ADMIN">Passed Review</option>
+                  <option value="FAILED_ADMIN">Failed Review</option>
+                  <option value="INTERVIEW_DONE">Interview Done</option>
+                  <option value="ACCEPTED">Accepted</option>
+                  <option value="WAITLISTED">Waitlisted</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+                <button class="bsm outline" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+                <button class="bsm navy" onclick="bulkAction('PASSED_ADMIN')" id="btn-bulk-pass" style="display:none"><i class="ti ti-check"></i> Bulk Pass</button>
+                <button class="bsm red" onclick="bulkAction('FAILED_ADMIN')" id="btn-bulk-fail" style="display:none"><i class="ti ti-x"></i> Bulk Fail</button>
+              </div>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="at" id="tbl-applicants">
+                <thead><tr>
+                  <th><input type="checkbox" id="chk-all" onchange="toggleAllChk(this)"></th>
+                  <th>Name</th><th>Email</th><th>Country</th><th>Programme 1st</th><th>Status</th><th>Applied</th><th>Action</th>
+                </tr></thead>
+                <tbody id="tbody-applicants"><tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:24px">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== PROGRAMME ELIGIBILITY ===== -->
+        <div class="apage" id="apage-programs">
+          <div class="apage-title">Programme Eligibility</div>
+          <div class="apage-sub">Toggle which programmes are open for international applications</div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+            <button class="bsm green" onclick="setAllElig(true)"><i class="ti ti-check"></i> Enable All</button>
+            <button class="bsm red" onclick="setAllElig(false)"><i class="ti ti-x"></i> Disable All</button>
+            <span style="font-size:13px;color:var(--text-mid);align-self:center" id="prog-counter">— programmes open</span>
+          </div>
+          <div id="elig-container">Loading...</div>
+        </div>
+
+        <!-- ===== SCHOLARSHIPS ===== -->
+        <div class="apage" id="apage-scholarships">
+          <div class="apage-title">Scholarship Options</div>
+          <div class="apage-sub">Manage which scholarship options appear in the application form</div>
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <input type="text" id="new-schol-name" class="tbl-search" placeholder="Add new scholarship name..." style="flex:1">
+            <button class="bsm navy" onclick="addScholarship()"><i class="ti ti-plus"></i> Add</button>
+          </div>
+          <div id="schol-container">Loading...</div>
+        </div>
+
+        <!-- ===== ADD STAFF ===== -->
+        <div class="apage" id="apage-staff">
+          <div class="apage-title">Add Staff Account</div>
+          <div class="apage-sub">Create accounts for interviewers and Head UGE</div>
+          <div class="auth-wrap" style="margin:0;max-width:480px;box-shadow:none;border:1px solid var(--border)">
+            <div class="ff"><label>Full Name <span class="req">*</span></label><input type="text" id="ns_name"></div>
+            <div class="ff"><label>Email <span class="req">*</span></label><input type="email" id="ns_email"></div>
+            <div class="ff"><label>Role <span class="req">*</span></label>
+              <select id="ns_role">
+                <option value="interviewer">Interviewer</option>
+                <option value="head_uge">Head UGE</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="ff"><label>Temporary Password <span class="req">*</span></label><input type="password" id="ns_pass" placeholder="Min 8 characters"></div>
+            <button class="btn-nav" onclick="addStaff()"><i class="ti ti-user-plus"></i> Create Account</button>
+          </div>
+        </div>
+
+        <!-- ===== INTERVIEW QUEUE ===== -->
+        <div class="apage" id="apage-int-queue">
+          <div class="apage-title">Interview Queue</div>
+          <div class="apage-sub">Applicants who have passed administrative review</div>
+          <div class="tbl-wrap">
+            <div class="tbl-hdr"><h3>Awaiting Interview</h3><button class="bsm outline" onclick="loadIntQueue()"><i class="ti ti-refresh"></i> Refresh</button></div>
+            <div style="overflow-x:auto">
+              <table class="at">
+                <thead><tr><th>Name</th><th>Country</th><th>Programme</th><th>SPQ Score</th><th>AI Rec.</th><th>Action</th></tr></thead>
+                <tbody id="tbody-int-queue"><tr><td colspan="6" style="text-align:center;color:var(--text-light);padding:24px">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== HEAD SUMMARY ===== -->
+        <div class="apage" id="apage-head-summary">
+          <div class="apage-title">Admission Summary</div>
+          <div class="apage-sub">Overview of all completed applications</div>
+          <div class="stat-grid" id="head-stat-grid">
+            <div class="sc"><div class="sc-icon sci-blue"><i class="ti ti-inbox"></i></div><div class="sc-num" id="hst-total">—</div><div class="sc-lbl">Total Processed</div></div>
+            <div class="sc"><div class="sc-icon sci-green"><i class="ti ti-circle-check"></i></div><div class="sc-num" id="hst-acc">—</div><div class="sc-lbl">Accepted</div></div>
+            <div class="sc"><div class="sc-icon sci-gold"><i class="ti ti-clock"></i></div><div class="sc-num" id="hst-wait">—</div><div class="sc-lbl">Waitlisted</div></div>
+            <div class="sc"><div class="sc-icon sci-red"><i class="ti ti-x"></i></div><div class="sc-num" id="hst-rej">—</div><div class="sc-lbl">Rejected</div></div>
+          </div>
+          <button class="bsm navy" onclick="showAPage('head-decisions')"><i class="ti ti-gavel"></i> Go to Decision Panel</button>
+        </div>
+
+        <!-- ===== HEAD DECISIONS ===== -->
+        <div class="apage" id="apage-head-decisions">
+          <div class="apage-title">Final Decisions</div>
+          <div class="apage-sub">Set final admission decisions for interviewed applicants</div>
+          <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+            <button class="bsm outline" onclick="exportCSV('head')"><i class="ti ti-download"></i> Export CSV</button>
+            <button class="bsm green" onclick="bulkHeadDecision('ACCEPTED')" id="btn-head-acc" style="display:none"><i class="ti ti-check"></i> Bulk Accept</button>
+            <button class="bsm red" onclick="bulkHeadDecision('REJECTED')" id="btn-head-rej" style="display:none"><i class="ti ti-x"></i> Bulk Reject</button>
+          </div>
+          <div class="tbl-wrap">
+            <div style="overflow-x:auto">
+              <table class="at">
+                <thead><tr>
+                  <th><input type="checkbox" id="chk-head-all" onchange="toggleHeadChk(this)"></th>
+                  <th>Name</th><th>Country</th><th>Programme</th><th>Int. Score</th><th>Int. Rec.</th><th>Current Status</th><th>Action</th>
+                </tr></thead>
+                <tbody id="tbody-head-decisions"><tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:24px">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /adm-main -->
+    </div><!-- /adm-layout -->
+  </div><!-- /adm-dashboard -->
+</div><!-- /admin-shell -->
+
+<!-- APPLICANT DETAIL MODAL -->
+<div class="modal-ov" id="modal-applicant">
+  <div class="modal-box">
+    <button class="mc" onclick="closeModal('modal-applicant')">×</button>
+    <h3 id="md-name">Applicant Detail</h3>
+    <div class="msub" id="md-id"></div>
+    <div id="md-body"></div>
+  </div>
+</div>
+
+<!-- INTERVIEW MODAL -->
+<div class="modal-ov" id="modal-interview">
+  <div class="modal-box">
+    <button class="mc" onclick="closeModal('modal-interview')">×</button>
+    <h3 id="int-md-name">Interview Assessment</h3>
+    <div class="msub" id="int-md-sub"></div>
+    <div id="int-md-body"></div>
+  </div>
+</div>
+
+<!-- HEAD DECISION MODAL -->
+<div class="modal-ov" id="modal-head-decision">
+  <div class="modal-box">
+    <button class="mc" onclick="closeModal('modal-head-decision')">×</button>
+    <h3 id="hd-md-name">Set Final Decision</h3>
+    <div class="msub" id="hd-md-sub"></div>
+    <div id="hd-md-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
