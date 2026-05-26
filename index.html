@@ -901,9 +901,19 @@ async function api(action,data,opts){
     const body={action,data};
     const tok=(opts&&opts.token)?opts.token:S.token;
     if(tok)body.token=tok;
-    const r=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    return await r.json();
-  }catch(e){console.error(e);return{success:false,message:'Connection error. Please try again.'};}
+    // GAS requires text/plain to avoid CORS preflight block
+    const r=await fetch(GAS_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(body)
+    });
+    const txt=await r.text();
+    try{return JSON.parse(txt);}
+    catch{console.error('Non-JSON response:',txt);return{success:false,message:'Server returned invalid response. Check GAS deployment.'};}
+  }catch(e){
+    console.error('API error:',e);
+    return{success:false,message:'Connection error. Please check your internet connection and try again.'};
+  }
 }
 
 // TOAST
