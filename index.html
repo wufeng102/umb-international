@@ -955,6 +955,463 @@ window.addEventListener('DOMContentLoaded', function(){
   }
 });
 
+
+// ===================== ADMIN JS =====================
+let ADM = {token:'',role:'',name:'',applicants:[],intQueue:[],headList:[],progConfig:{},scholConfig:[]};
+
+async function doStaffLogin(){
+  const email=document.getElementById('aml_email').value.trim();
+  const pass=document.getElementById('aml_pass').value;
+  if(!email||!pass) return toast('Please enter email and password.','err');
+  const r=await api('login_staff',{email,password:pass});
+  if(r.success){
+    ADM.token=r.token; ADM.role=r.role; ADM.name=r.full_name;
+    localStorage.setItem('umb_staff_token',r.token);
+    localStorage.setItem('umb_staff_role',r.role);
+    localStorage.setItem('umb_staff_name',r.full_name);
+    showAdminDashboard(r.role,r.full_name);
+  } else toast(r.message||'Login failed. Check email and password.','err');
+}
+
+function showAdminDashboard(role,name){
+  document.getElementById('adm-login').style.display='none';
+  document.getElementById('adm-dashboard').style.display='block';
+  document.getElementById('adm-user-name').textContent=name;
+  const roleLabels={admin:'Admin',interviewer:'Interviewer',head_uge:'Head UGE'};
+  document.getElementById('adm-role-badge').textContent=roleLabels[role]||role;
+  document.getElementById('nav-admin-group').style.display=role==='admin'?'':'none';
+  document.getElementById('nav-int-group').style.display=role==='interviewer'?'':'none';
+  document.getElementById('nav-head-group').style.display=role==='head_uge'?'':'none';
+  if(role==='admin'){showAPage('dashboard');loadDashboard();}
+  else if(role==='interviewer'){showAPage('int-queue');loadIntQueue();}
+  else if(role==='head_uge'){showAPage('head-summary');loadHeadSummary();}
+}
+
+function doStaffLogout(){
+  ADM={token:'',role:'',name:'',applicants:[],intQueue:[],headList:[],progConfig:{},scholConfig:[]};
+  localStorage.removeItem('umb_staff_token');
+  localStorage.removeItem('umb_staff_role');
+  localStorage.removeItem('umb_staff_name');
+  document.getElementById('adm-login').style.display='flex';
+  document.getElementById('adm-dashboard').style.display='none';
+}
+
+function closeAdmin(){
+  document.getElementById('admin-shell').style.display='none';
+  document.body.style.overflow='';
+  location.hash='';
+}
+
+function showAPage(id){
+  document.querySelectorAll('.apage').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.anav').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('apage-'+id);
+  const nav=document.getElementById('nav-'+id);
+  if(pg)pg.classList.add('active');
+  if(nav)nav.classList.add('active');
+  if(id==='applicants')loadApplicants();
+  if(id==='programs')loadProgConfig();
+  if(id==='scholarships')loadScholConfig();
+  if(id==='int-queue')loadIntQueue();
+  if(id==='head-summary')loadHeadSummary();
+  if(id==='head-decisions')loadHeadDecisions();
+}
+
+async function apiAdm(action,data){
+  return await api(action,data,{token:ADM.token});
+}
+
+// DASHBOARD
+async function loadDashboard(){
+  const r=await apiAdm('admin_get_dashboard_summary',{});
+  if(r.success&&r.data){
+    document.getElementById('st-total').textContent=r.data.total||0;
+    document.getElementById('st-review').textContent=(r.data.submitted||0)+(r.data.admin_review||0);
+    document.getElementById('st-interview').textContent=r.data.passed_admin||0;
+    document.getElementById('st-accepted').textContent=r.data.accepted||0;
+  }
+  const r2=await apiAdm('admin_get_all_applicants',{});
+  if(r2.success&&r2.data){
+    ADM.applicants=r2.data;
+    const recent=r2.data.slice(0,10);
+    document.getElementById('tbody-recent').innerHTML=recent.length
+      ?recent.map(a=>`<tr><td><strong>${esc(a.full_name||'—')}</strong></td><td>${esc(a.nationality||'—')}</td><td style="font-size:12px">${esc(a.program_1||'—')}</td><td>${stageBadge(a.stage)}</td><td style="color:var(--text-light);font-size:12px">${fmtDate(a.created_at)}</td></tr>`).join('')
+      :'<tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:20px">No applications yet.</td></tr>';
+  }
+}
+
+// ALL APPLICANTS
+async function loadApplicants(){
+  document.getElementById('tbody-applicants').innerHTML='<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-light)">Loading...</td></tr>';
+  const r=await apiAdm('admin_get_all_applicants',{});
+  if(r.success&&r.data){ADM.applicants=r.data;renderApplicantsTable(r.data);}
+  else document.getElementById('tbody-applicants').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--error);padding:20px">Failed to load.</td></tr>';
+}
+
+function renderApplicantsTable(data){
+  const tbody=document.getElementById('tbody-applicants');
+  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:20px">No applications found.</td></tr>';return;}
+  tbody.innerHTML=data.map(a=>`<tr>
+    <td><input type="checkbox" class="appl-chk" value="${esc(a.applicant_id)}" onchange="updateBulkBtns()"></td>
+    <td><strong>${esc(a.full_name||'—')}</strong><br><span style="font-size:11px;color:var(--text-light)">${esc(a.email||'')}</span></td>
+    <td>${esc(a.email||'—')}</td>
+    <td>${esc(a.nationality||'—')}</td>
+    <td style="font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.program_1||'—')}</td>
+    <td>${stageBadge(a.stage)}</td>
+    <td style="color:var(--text-light);font-size:12px">${fmtDate(a.created_at)}</td>
+    <td><button class="bsm outline" onclick="openApplicantModal('${esc(a.applicant_id)}')"><i class="ti ti-eye"></i> View</button></td>
+  </tr>`).join('');
+}
+
+function filterApplicants(){
+  const q=document.getElementById('appl-search').value.toLowerCase();
+  const st=document.getElementById('appl-filter').value;
+  const filtered=ADM.applicants.filter(a=>{
+    const mq=!q||(a.full_name||'').toLowerCase().includes(q)||(a.email||'').toLowerCase().includes(q);
+    const ms=!st||a.stage===st;
+    return mq&&ms;
+  });
+  renderApplicantsTable(filtered);
+}
+
+function toggleAllChk(cb){document.querySelectorAll('.appl-chk').forEach(c=>c.checked=cb.checked);updateBulkBtns();}
+function updateBulkBtns(){
+  const n=[...document.querySelectorAll('.appl-chk:checked')].length;
+  document.getElementById('btn-bulk-pass').style.display=n?'':'none';
+  document.getElementById('btn-bulk-fail').style.display=n?'':'none';
+}
+
+async function bulkAction(decision){
+  const ids=[...document.querySelectorAll('.appl-chk:checked')].map(c=>c.value);
+  if(!ids.length)return;
+  if(!confirm('Set '+ids.length+' applicant(s) to '+decision+'?'))return;
+  let ok=0;
+  for(const id of ids){const r=await apiAdm('admin_set_review_decision',{applicant_id:id,decision,notes:'Bulk action'});if(r.success)ok++;}
+  toast(ok+'/'+ids.length+' updated.',ok===ids.length?'ok':'err');
+  loadApplicants();
+}
+
+function exportCSV(mode){
+  const data=mode==='head'?ADM.headList:ADM.applicants;
+  if(!data||!data.length)return toast('No data to export.','err');
+  const cols=mode==='head'
+    ?['applicant_id','full_name','email','nationality','program_1','stage','interview_total','interview_recommendation']
+    :['applicant_id','full_name','email','nationality','program_1','funding_source','stage','created_at'];
+  const csv=[cols.join(','),...data.map(a=>cols.map(c=>'"'+(a[c]||'').toString().replace(/"/g,'""')+'"').join(','))].join('
+');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='umb_applicants_'+Date.now()+'.csv';a.click();
+}
+
+// APPLICANT DETAIL MODAL
+async function openApplicantModal(id){
+  const r=await apiAdm('admin_get_applicant_detail',{applicant_id:id});
+  if(!r.success)return toast(r.message||'Failed.','err');
+  const a=r.data;
+  document.getElementById('md-name').textContent=a.full_name||'—';
+  document.getElementById('md-id').innerHTML='ID: '+id+' &nbsp;'+stageBadge(a.stage);
+  let html='<div style="margin-bottom:14px">'
+    +dr('Email',a.email)+dr('Nationality',a.nationality)+dr('Date of Birth',a.birth_date)
+    +dr('WhatsApp',a.whatsapp)+dr('Religion',a.religion)+'</div>'
+    +'<div style="margin-bottom:14px">'
+    +dr('1st Choice',(a.faculty_1||'')+(a.program_1?' — '+a.program_1:''))
+    +dr('2nd Choice',(a.faculty_2&&a.program_2)?a.faculty_2+' — '+a.program_2:'None')
+    +dr('Funding',a.funding_source)+dr('Scholarship',a.scholarship_name||'—')+'</div>'
+    +'<div style="margin-bottom:14px">'
+    +dr('School',a.school_name)+dr('GPA',a.school_gpa)+'</div>';
+  if(a.gemini_recommendation){
+    html+='<div class="gem-box"><h4>AI Analysis</h4><p><strong>Recommendation:</strong> '+esc(a.gemini_recommendation)+'</p>'+(a.gemini_summary?'<p style="margin-top:5px;font-size:13px;opacity:.85">'+esc(a.gemini_summary)+'</p>':'')+'</div>';
+  }
+  if(a.psych_total){
+    html+='<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">SPQ Scores</div>'
+      +sbar('Extraversion & Social',a.psych_s1,40)+sbar('Openness & Cross-Cultural',a.psych_s2,40)
+      +sbar('Conscientiousness',a.psych_s3,40)+sbar('Emotional Stability',a.psych_s4,40)
+      +sbar('Academic Motivation',a.psych_s5,40)+sbar('Critical Thinking',a.psych_s6,40)
+      +'<div style="font-size:13px;font-weight:700;color:var(--navy);margin-top:6px">Total: '+(a.psych_total||0)+' / 240</div></div>';
+  }
+  if(a.motivation_statement){
+    html+='<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Motivation</div><p style="font-size:13px;color:var(--text-mid);line-height:1.7;background:var(--cream);padding:12px;border-radius:8px">'+esc(a.motivation_statement)+'</p></div>';
+  }
+  if(['SUBMITTED','ADMIN_REVIEW','PASSED_ADMIN'].includes(a.stage)){
+    html+='<div style="display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">'
+      +'<textarea id="review-notes" placeholder="Notes (optional)..." style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:13px;resize:none;height:56px;outline:none"></textarea>'
+      +'<div style="display:flex;flex-direction:column;gap:6px">'
+      +'<button class="bsm green" onclick="setReviewDecision(''+id+'','PASSED_ADMIN')"><i class="ti ti-check"></i> Pass</button>'
+      +'<button class="bsm red" onclick="setReviewDecision(''+id+'','FAILED_ADMIN')"><i class="ti ti-x"></i> Fail</button>'
+      +'</div></div>';
+  }
+  if(a.drive_folder_url){html+='<div style="margin-top:10px"><a href="'+a.drive_folder_url+'" target="_blank" class="bsm outline"><i class="ti ti-folder"></i> View Documents</a></div>';}
+  document.getElementById('md-body').innerHTML=html;
+  openModal('modal-applicant');
+}
+
+async function setReviewDecision(id,decision){
+  const notes=document.getElementById('review-notes')?document.getElementById('review-notes').value:'';
+  const r=await apiAdm('admin_set_review_decision',{applicant_id:id,decision,notes});
+  if(r.success){toast('Decision saved.');closeModal('modal-applicant');loadApplicants();}
+  else toast(r.message||'Failed.','err');
+}
+
+// PROGRAMME ELIGIBILITY
+async function loadProgConfig(){
+  const r=await apiAdm('admin_get_programs_config',{});
+  if(r.success&&r.data){ADM.progConfig=r.data;renderEligGrid();}
+  else document.getElementById('elig-container').innerHTML='<p style="color:var(--text-light)">Failed to load.</p>';
+}
+
+function renderEligGrid(){
+  const data=ADM.progConfig;
+  if(!data||!Object.keys(data).length){document.getElementById('elig-container').innerHTML='<p style="color:var(--text-light)">No programme data.</p>';return;}
+  let total=0,open=0,html='';
+  for(const [fac,progs] of Object.entries(data)){
+    const allOn=progs.every(p=>p.is_eligible);
+    html+='<div class="elig-fac"><div class="elig-fac-hdr"><span>'+esc(fac)+'</span>'
+      +'<label class="toggle"><input type="checkbox" '+(allOn?'checked':'')+' onchange="setFacElig(''+esc(fac)+'',this.checked)"><span class="tslider"></span></label></div>';
+    for(const p of progs){
+      total++;if(p.is_eligible)open++;
+      html+='<div class="elig-prog"><span>'+esc(p.program)+'</span>'
+        +'<label class="toggle"><input type="checkbox" '+(p.is_eligible?'checked':'')+' onchange="setProgElig(''+esc(fac)+'',''+esc(p.program)+'',this.checked)"><span class="tslider"></span></label></div>';
+    }
+    html+='</div>';
+  }
+  document.getElementById('elig-container').innerHTML=html;
+  document.getElementById('prog-counter').textContent=open+' of '+total+' programmes open';
+}
+
+async function setProgElig(fac,prog,val){
+  await apiAdm('admin_set_program_eligibility',{faculty:fac,program:prog,is_eligible:val});
+  if(ADM.progConfig[fac]){const p=ADM.progConfig[fac].find(x=>x.program===prog);if(p)p.is_eligible=val;}
+  renderEligGrid();
+}
+
+async function setFacElig(fac,val){
+  await apiAdm('admin_set_faculty_eligibility',{faculty:fac,is_eligible:val});
+  if(ADM.progConfig[fac])ADM.progConfig[fac].forEach(p=>p.is_eligible=val);
+  renderEligGrid();
+}
+
+async function setAllElig(val){
+  for(const fac of Object.keys(ADM.progConfig)){
+    await apiAdm('admin_set_faculty_eligibility',{faculty:fac,is_eligible:val});
+    ADM.progConfig[fac].forEach(p=>p.is_eligible=val);
+  }
+  renderEligGrid();
+  toast(val?'All programmes enabled.':'All programmes disabled.');
+}
+
+// SCHOLARSHIPS
+async function loadScholConfig(){
+  const r=await apiAdm('admin_get_scholarships',{});
+  if(r.success&&r.data){ADM.scholConfig=r.data;renderScholList();}
+  else document.getElementById('schol-container').innerHTML='<p style="color:var(--text-light)">No data.</p>';
+}
+
+function renderScholList(){
+  const c=document.getElementById('schol-container');
+  if(!ADM.scholConfig.length){c.innerHTML='<p style="color:var(--text-light)">No scholarships.</p>';return;}
+  c.innerHTML=ADM.scholConfig.map(s=>'<div class="schol-row"><span class="sr-name">'+esc(s.label)+'</span>'
+    +'<div style="display:flex;align-items:center;gap:10px">'
+    +'<label class="toggle"><input type="checkbox" '+(s.is_active?'checked':'')+' onchange="setScholStatus(''+esc(s.id)+'',this.checked)"><span class="tslider"></span></label>'
+    +'<button class="bsm red" onclick="deleteSchol(''+esc(s.id)+'')"><i class="ti ti-trash"></i></button>'
+    +'</div></div>').join('');
+}
+
+async function setScholStatus(id,val){await apiAdm('admin_set_scholarship_status',{id,is_active:val});}
+async function addScholarship(){
+  const name=document.getElementById('new-schol-name').value.trim();
+  if(!name)return toast('Enter a name.','err');
+  const r=await apiAdm('admin_add_scholarship',{label:name});
+  if(r.success){document.getElementById('new-schol-name').value='';loadScholConfig();toast('Added.');}
+  else toast(r.message||'Failed.','err');
+}
+async function deleteSchol(id){
+  if(!confirm('Delete this?'))return;
+  const r=await apiAdm('admin_delete_scholarship',{id});
+  if(r.success){loadScholConfig();toast('Deleted.');}else toast(r.message||'Failed.','err');
+}
+
+// ADD STAFF
+async function addStaff(){
+  const name=document.getElementById('ns_name').value.trim();
+  const email=document.getElementById('ns_email').value.trim();
+  const role=document.getElementById('ns_role').value;
+  const pass=document.getElementById('ns_pass').value;
+  if(!name||!email||!pass)return toast('Please fill all fields.','err');
+  if(pass.length<8)return toast('Password min 8 characters.','err');
+  const r=await apiAdm('admin_add_staff',{email,full_name:name,role,temp_password:pass});
+  if(r.success){toast('Staff account created.');document.getElementById('ns_name').value='';document.getElementById('ns_email').value='';document.getElementById('ns_pass').value='';}
+  else toast(r.message||'Failed.','err');
+}
+
+// INTERVIEWER
+async function loadIntQueue(){
+  document.getElementById('tbody-int-queue').innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-light)">Loading...</td></tr>';
+  const r=await apiAdm('interviewer_get_queue',{});
+  if(r.success&&r.data){
+    ADM.intQueue=r.data;
+    if(!r.data.length){document.getElementById('tbody-int-queue').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-light);padding:20px">No applicants in queue.</td></tr>';return;}
+    document.getElementById('tbody-int-queue').innerHTML=r.data.map(a=>'<tr>'
+      +'<td><strong>'+esc(a.full_name||'—')+'</strong></td>'
+      +'<td>'+esc(a.nationality||'—')+'</td>'
+      +'<td style="font-size:12px">'+esc(a.program_1||'—')+'</td>'
+      +'<td>'+(a.psych_total?a.psych_total+'/240':'—')+'</td>'
+      +'<td>'+gemBadge(a.gemini_recommendation)+'</td>'
+      +'<td><button class="bsm navy" onclick="openInterviewModal(''+esc(a.applicant_id)+'')"><i class="ti ti-microphone"></i> Interview</button></td>'
+      +'</tr>').join('');
+  } else document.getElementById('tbody-int-queue').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--error);padding:20px">Failed to load.</td></tr>';
+}
+
+async function openInterviewModal(id){
+  const r=await apiAdm('interviewer_get_profile',{applicant_id:id});
+  if(!r.success)return toast(r.message||'Failed.','err');
+  const a=r.data;
+  document.getElementById('int-md-name').textContent=a.full_name||'—';
+  document.getElementById('int-md-sub').innerHTML='Programme: <strong>'+esc(a.program_1||'—')+'</strong> · '+esc(a.nationality||'—');
+  const sections=[
+    {key:'personal_background',label:'Personal Background'},
+    {key:'motivation',label:'Motivation & Academic Purpose'},
+    {key:'adaptability',label:'Adaptability & Cross-Cultural'},
+    {key:'independence',label:'Independence & Self-Management'},
+    {key:'emotional_resilience',label:'Emotional Resilience'},
+    {key:'social_skills',label:'Social Skills'},
+    {key:'critical_thinking',label:'Critical Thinking'},
+    {key:'overall',label:'Overall Impression'},
+  ];
+  let html='<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:14px">'
+    +(a.psych_total?'<strong>SPQ:</strong> '+a.psych_total+'/240 &nbsp;·&nbsp; ':'')
+    +'<strong>AI:</strong> '+gemBadge(a.gemini_recommendation)+'</div>'
+    +'<p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Score each section 1 (Poor) – 5 (Excellent)</p>';
+  for(const sec of sections){
+    html+='<div class="int-sec"><h4>'+esc(sec.label)+'</h4>'
+      +'<div style="display:flex;gap:6px;margin-bottom:8px">'
+      +[1,2,3,4,5].map(v=>'<div class="sopt" data-sec="'+sec.key+'" data-val="'+v+'" onclick="selectScore(''+sec.key+'','+v+')">'+v+'</div>').join('')
+      +'</div></div>';
+  }
+  html+='<div class="ff" style="margin-top:4px"><label>Interview Notes</label>'
+    +'<textarea id="int-notes" rows="4" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none;resize:vertical"></textarea></div>'
+    +'<div class="ff"><label>Overall Recommendation</label>'
+    +'<select id="int-rec" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none">'
+    +'<option value="">— Select —</option><option value="RECOMMENDED">Recommended</option>'
+    +'<option value="WAITLIST">Waitlist</option><option value="REJECTED">Not Recommended</option></select></div>'
+    +'<button class="btn-nav" style="width:100%;justify-content:center;margin-top:4px" onclick="submitInterview(''+id+'')"><i class="ti ti-send"></i> Submit Result</button>';
+  document.getElementById('int-md-body').innerHTML=html;
+  openModal('modal-interview');
+}
+
+function selectScore(sec,val){
+  document.querySelectorAll('.sopt[data-sec="'+sec+'"]').forEach(el=>el.classList.toggle('sel',parseInt(el.dataset.val)===val));
+}
+
+async function submitInterview(id){
+  const secs=['personal_background','motivation','adaptability','independence','emotional_resilience','social_skills','critical_thinking','overall'];
+  const scores={};
+  for(const sec of secs){
+    const sel=document.querySelector('.sopt[data-sec="'+sec+'"].sel');
+    if(!sel)return toast('Please score all 8 sections.','err');
+    scores[sec]=parseInt(sel.dataset.val);
+  }
+  const notes=document.getElementById('int-notes').value;
+  const rec=document.getElementById('int-rec').value;
+  if(!rec)return toast('Please select a recommendation.','err');
+  const r=await apiAdm('interviewer_submit_result',{applicant_id:id,interview_data:{scores,notes,recommendation:rec}});
+  if(r.success){toast('Result submitted.');closeModal('modal-interview');loadIntQueue();}
+  else toast(r.message||'Failed.','err');
+}
+
+// HEAD UGE
+async function loadHeadSummary(){
+  const r=await apiAdm('head_get_summary',{});
+  if(r.success&&r.data){
+    document.getElementById('hst-total').textContent=r.data.total||0;
+    document.getElementById('hst-acc').textContent=r.data.accepted||0;
+    document.getElementById('hst-wait').textContent=r.data.waitlisted||0;
+    document.getElementById('hst-rej').textContent=r.data.rejected||0;
+  }
+}
+
+async function loadHeadDecisions(){
+  document.getElementById('tbody-head-decisions').innerHTML='<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-light)">Loading...</td></tr>';
+  const r=await apiAdm('head_get_all_completed',{});
+  if(r.success&&r.data){ADM.headList=r.data;renderHeadTable(r.data);}
+}
+
+function renderHeadTable(data){
+  const tbody=document.getElementById('tbody-head-decisions');
+  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:20px">No completed interviews yet.</td></tr>';return;}
+  tbody.innerHTML=data.map(a=>'<tr>'
+    +'<td><input type="checkbox" class="head-chk" value="'+esc(a.applicant_id)+'" onchange="updateHeadBulkBtns()"></td>'
+    +'<td><strong>'+esc(a.full_name||'—')+'</strong></td>'
+    +'<td>'+esc(a.nationality||'—')+'</td>'
+    +'<td style="font-size:12px">'+esc(a.program_1||'—')+'</td>'
+    +'<td>'+(a.interview_total?a.interview_total+'/40':'—')+'</td>'
+    +'<td>'+gemBadge(a.interview_recommendation)+'</td>'
+    +'<td>'+stageBadge(a.stage)+'</td>'
+    +'<td><button class="bsm outline" onclick="openHeadModal(''+esc(a.applicant_id)+'')"><i class="ti ti-gavel"></i> Decide</button></td>'
+    +'</tr>').join('');
+}
+
+function toggleHeadChk(cb){document.querySelectorAll('.head-chk').forEach(c=>c.checked=cb.checked);updateHeadBulkBtns();}
+function updateHeadBulkBtns(){
+  const n=[...document.querySelectorAll('.head-chk:checked')].length;
+  document.getElementById('btn-head-acc').style.display=n?'':'none';
+  document.getElementById('btn-head-rej').style.display=n?'':'none';
+}
+
+async function bulkHeadDecision(decision){
+  const ids=[...document.querySelectorAll('.head-chk:checked')].map(c=>c.value);
+  if(!ids.length)return;
+  if(!confirm('Set '+ids.length+' applicant(s) to '+decision+'?'))return;
+  const r=await apiAdm('head_bulk_decisions',{decisions:ids.map(id=>({applicant_id:id,decision,notes:'Bulk'}))});
+  if(r.success){toast('Done.');loadHeadDecisions();loadHeadSummary();}
+  else toast(r.message||'Failed.','err');
+}
+
+async function openHeadModal(id){
+  const r=await apiAdm('head_get_profile',{applicant_id:id});
+  if(!r.success)return toast(r.message||'Failed.','err');
+  const a=r.data;
+  document.getElementById('hd-md-name').textContent=a.full_name||'—';
+  document.getElementById('hd-md-sub').textContent='Programme: '+(a.program_1||'—')+' · '+(a.nationality||'—');
+  let html='<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px">'
+    +dr('SPQ Total',(a.psych_total||'—')+'/240')
+    +dr('AI Recommendation',gemBadge(a.gemini_recommendation))
+    +dr('Interview Score',(a.interview_total||'—')+'/40')
+    +dr('Interview Recommendation',gemBadge(a.interview_recommendation))+'</div>'
+    +(a.interview_notes?'<div style="background:var(--cream);border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--text-mid)"><strong>Interviewer Notes:</strong><br>'+esc(a.interview_notes)+'</div>':'')
+    +'<div class="ff"><label>Head UGE Notes</label><textarea id="hd-notes" rows="3" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none;resize:none"></textarea></div>'
+    +'<div style="display:flex;gap:8px;margin-top:8px">'
+    +'<button class="bsm green" style="flex:1;justify-content:center" onclick="setHeadDecision(''+id+'','ACCEPTED')"><i class="ti ti-circle-check"></i> Accept</button>'
+    +'<button class="bsm outline" style="flex:1;justify-content:center" onclick="setHeadDecision(''+id+'','WAITLISTED')"><i class="ti ti-clock"></i> Waitlist</button>'
+    +'<button class="bsm red" style="flex:1;justify-content:center" onclick="setHeadDecision(''+id+'','REJECTED')"><i class="ti ti-x"></i> Reject</button>'
+    +'</div>';
+  document.getElementById('hd-md-body').innerHTML=html;
+  openModal('modal-head-decision');
+}
+
+async function setHeadDecision(id,decision){
+  const notes=document.getElementById('hd-notes')?document.getElementById('hd-notes').value:'';
+  const r=await apiAdm('head_set_decision',{applicant_id:id,decision,notes});
+  if(r.success){toast('Decision saved.');closeModal('modal-head-decision');loadHeadDecisions();loadHeadSummary();}
+  else toast(r.message||'Failed.','err');
+}
+
+// HELPERS
+function dr(label,val){return '<div class="dr"><span class="dr-l">'+label+'</span><span class="dr-v">'+(val||'—')+'</span></div>';}
+function sbar(label,val,max){const pct=Math.round((val||0)/max*100);return '<div class="sbar-item"><div class="sbi-top"><span>'+label+'</span><span>'+(val||0)+'/'+max+'</span></div><div class="sbar-track"><div class="sbar-fill" style="width:'+pct+'%"></div></div></div>';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch{return d;}}
+function stageBadge(s){
+  const m={SUBMITTED:'ab-sub',ADMIN_REVIEW:'ab-rev',PASSED_ADMIN:'ab-pass',FAILED_ADMIN:'ab-fail',INTERVIEW_DONE:'ab-int',ACCEPTED:'ab-acc',WAITLISTED:'ab-wait',REJECTED:'ab-rej'};
+  const l={SUBMITTED:'Submitted',ADMIN_REVIEW:'In Review',PASSED_ADMIN:'Passed Review',FAILED_ADMIN:'Failed Review',INTERVIEW_DONE:'Interview Done',ACCEPTED:'Accepted',WAITLISTED:'Waitlisted',REJECTED:'Rejected'};
+  return '<span class="abadge '+(m[s]||'ab-sub')+'">'+(l[s]||s||'—')+'</span>';
+}
+function gemBadge(r){
+  if(!r)return '<span style="color:var(--text-light);font-size:12px">—</span>';
+  const m={HIGHLY_RECOMMENDED:'ab-acc',RECOMMENDED:'ab-pass',REVIEW_NEEDED:'ab-wait',WAITLIST:'ab-wait',REJECTED:'ab-rej'};
+  return '<span class="abadge '+(m[r]||'ab-sub')+'" style="font-size:11px">'+r.replace(/_/g,' ')+'</span>';
+}
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='hidden';}
+
 </script>
 
 <!-- ===================== ADMIN SHELL ===================== -->
