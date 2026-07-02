@@ -764,13 +764,11 @@ async function doLogin(){
     localStorage.setItem('umb_staff_name',r.full_name);
     document.getElementById('admin-shell').style.display='block';
     document.body.style.overflow='hidden';
-    document.getElementById('adm-login').style.display='none';
     showAdminDashboard(r.role,r.full_name);
     toast('Welcome, '+r.full_name+'!');
     return;
   }
 
-  // type === 'applicant'
   S={token:r.token,email:e,applicant_id:r.applicant_id,full_name:r.full_name};
   localStorage.setItem('umb_token',r.token);
   document.getElementById('authTabs').style.display='none';
@@ -914,7 +912,7 @@ async function goToDashboard(){
   await loadApplicantDashboard();
   setStep(6);
 }
-function goToStatus(){goToDashboard();} // legacy alias
+function goToStatus(){goToDashboard();}
 
 async function loadApplicantDashboard(){
   document.getElementById('dashName').textContent=S.full_name||'—';
@@ -922,22 +920,19 @@ async function loadApplicantDashboard(){
   const r=await api('get_my_application',{});
   if(!r.success){toast(r.message||'Failed to load your application.','err');return;}
 
-  const a=r.applicant;
   const stage=r.stage||'SUBMITTED';
 
-  // ---- CTA ----
   const cta=document.getElementById('dashCTA');
   if(!r.part1_complete){
-    cta.innerHTML='<div class="nb" style="background:var(--warn-bg);border-color:#f0dfa0"><i class="ti ti-forms" style="color:var(--warn)"></i><p style="color:var(--warn)"><strong>Your application is incomplete.</strong> Please complete Part 1 (Personal Data) to continue.</p></div>'
-      +'<button class="btn-nav" style="width:100%;justify-content:center;margin-top:6px" onclick="showPanel(\'part1\');setStep(3)"><i class="ti ti-arrow-right"></i> Continue Personal Data</button>';
+    cta.innerHTML=`<div class="nb" style="background:var(--warn-bg);border-color:#f0dfa0"><i class="ti ti-forms" style="color:var(--warn)"></i><p style="color:var(--warn)"><strong>Your application is incomplete.</strong> Please complete Part 1 (Personal Data) to continue.</p></div>
+      <button class="btn-nav" style="width:100%;justify-content:center;margin-top:6px" onclick="showPanel('part1');setStep(3)"><i class="ti ti-arrow-right"></i> Continue Personal Data</button>`;
   } else if(!r.part2_complete){
-    cta.innerHTML='<div class="nb" style="background:var(--warn-bg);border-color:#f0dfa0"><i class="ti ti-checklist" style="color:var(--warn)"></i><p style="color:var(--warn)"><strong>One step left.</strong> Please complete the Student Profile Questionnaire to submit your application.</p></div>'
-      +'<button class="btn-nav" style="width:100%;justify-content:center;margin-top:6px" onclick="showPanel(\'part2\');setStep(5);buildSPQ()"><i class="ti ti-arrow-right"></i> Continue Questionnaire</button>';
+    cta.innerHTML=`<div class="nb" style="background:var(--warn-bg);border-color:#f0dfa0"><i class="ti ti-checklist" style="color:var(--warn)"></i><p style="color:var(--warn)"><strong>One step left.</strong> Please complete the Student Profile Questionnaire to submit your application.</p></div>
+      <button class="btn-nav" style="width:100%;justify-content:center;margin-top:6px" onclick="showPanel('part2');setStep(5);buildSPQ()"><i class="ti ti-arrow-right"></i> Continue Questionnaire</button>`;
   } else {
-    cta.innerHTML='<div class="nb" style="background:var(--success-bg);border-color:#a8d5b5"><i class="ti ti-circle-check" style="color:var(--success)"></i><p style="color:var(--success)"><strong>Application complete.</strong> Your application is being processed. Check back here for updates.</p></div>';
+    cta.innerHTML=`<div class="nb" style="background:var(--success-bg);border-color:#a8d5b5"><i class="ti ti-circle-check" style="color:var(--success)"></i><p style="color:var(--success)"><strong>Application complete.</strong> Your application is being processed. Check back here for updates.</p></div>`;
   }
 
-  // ---- TRACKER ----
   const failed=(stage==='FAILED_ADMIN'||stage==='REJECTED');
   const idx=STAGE_ORDER.indexOf(stage);
   const trackerStages=['SUBMITTED','ADMIN_REVIEW','PASSED_ADMIN','INTERVIEW_DONE','ACCEPTED'];
@@ -953,11 +948,10 @@ async function loadApplicantDashboard(){
     if(stage==='WAITLISTED'&&s==='ACCEPTED'){label='Final Decision';desc=STAGE_META.WAITLISTED.desc;icon='ti-clock';dotClass='active';}
     if(stage==='REJECTED'&&s==='ACCEPTED'){label='Final Decision';desc=STAGE_META.REJECTED.desc;icon='ti-x';dotClass='';}
     const opacity=(dotClass==='pending')?'opacity:.45':'';
-    trackerHtml+='<div class="st-item"><div class="st-dot '+dotClass+'"><i class="ti '+icon+'"></i></div><div class="st-content"><h4 style="'+opacity+'">'+esc(label)+'</h4><p style="'+opacity+'">'+esc(desc)+'</p></div></div>';
+    trackerHtml+=`<div class="st-item"><div class="st-dot ${dotClass}"><i class="ti ${icon}"></i></div><div class="st-content"><h4 style="${opacity}">${esc(label)}</h4><p style="${opacity}">${esc(desc)}</p></div></div>`;
   });
   document.getElementById('dashTracker').innerHTML=trackerHtml;
 
-  // ---- DOCUMENTS ----
   const docTypes=[
     {key:'passport_scan',label:'Passport Scan',req:true},
     {key:'photo',label:'Passport Photo',req:true},
@@ -976,7 +970,7 @@ async function loadApplicantDashboard(){
     const cls=doc?'du uploaded':'du';
     const icon=doc?'ti-circle-check':'ti-file-upload';
     const sub=doc?'Uploaded':(dt.req?'Required — not uploaded':'Optional — not uploaded');
-    return '<div class="'+cls+'" onclick="trigUp(\''+dt.key+'\')"><div class="du-i"><i class="ti '+icon+'"></i></div><div><div class="du-n">'+esc(dt.label)+(dt.req?'<span class="doc-req">*</span>':'<span class="doc-opt">Optional</span>')+'</div><div class="du-s">'+sub+'</div></div></div>';
+    return `<div class="${cls}" onclick="trigUp('${dt.key}')"><div class="du-i"><i class="ti ${icon}"></i></div><div><div class="du-n">${esc(dt.label)}${dt.req?'<span class="doc-req">*</span>':'<span class="doc-opt">Optional</span>'}</div><div class="du-s">${sub}</div></div></div>`;
   }).join('');
 }
 
@@ -1022,10 +1016,6 @@ function toast(msg,type){
 // ==================== ADMIN (STAFF) ====================
 let ADM={token:'',role:'',name:'',applicants:[],intQueue:[],headList:[],progConfig:{},scholConfig:[]};
 
-// Entry point: called once on page load to restore an existing staff session.
-// Staff no longer have a separate login form or #staff URL — they sign in
-// through the same "Sign In" form as applicants; unified_login on the
-// backend determines the role and doLogin() routes them here.
 function restoreStaffSession(){
   const st=localStorage.getItem('umb_staff_token');
   const sr=localStorage.getItem('umb_staff_role');
@@ -1148,20 +1138,20 @@ async function openApplModal(id){
   const a=r.data;
   document.getElementById('md-name').textContent=a.full_name||'—';
   document.getElementById('md-id').innerHTML='ID: '+id+' &nbsp;'+stageBadge(a.stage);
-  let html='<div style="margin-bottom:14px">'+dr('Email',a.email)+dr('Nationality',a.nationality)+dr('DOB',a.birth_date)+dr('WhatsApp',a.whatsapp)+'</div>'
-    +'<div style="margin-bottom:14px">'+dr('1st Choice',(a.faculty_1||'')+(a.program_1?' — '+a.program_1:''))+dr('Funding',a.funding_source)+'</div>'
-    +'<div style="margin-bottom:14px">'+dr('School',a.school_name)+dr('GPA',a.school_gpa)+'</div>';
-  if(a.gemini_recommendation)html+='<div class="gem-box"><h4>AI Analysis</h4><p>Recommendation: '+esc(a.gemini_recommendation)+'</p>'+(a.gemini_summary?'<p style="margin-top:5px;font-size:13px;opacity:.85">'+esc(a.gemini_summary)+'</p>':'')+'</div>';
-  if(a.psych_total)html+='<div style="margin-bottom:14px">'+sbar('Extraversion',a.psych_s1,40)+sbar('Openness',a.psych_s2,40)+sbar('Conscientiousness',a.psych_s3,40)+sbar('Emotional Stability',a.psych_s4,40)+sbar('Academic Motivation',a.psych_s5,40)+sbar('Critical Thinking',a.psych_s6,40)+'<div style="font-size:13px;font-weight:700;color:var(--navy);margin-top:6px">Total: '+(a.psych_total||0)+'/240</div></div>';
-  if(a.motivation_statement)html+='<div style="margin-bottom:14px"><p style="font-size:13px;color:var(--text-mid);line-height:1.7;background:var(--cream);padding:12px;border-radius:8px">'+esc(a.motivation_statement)+'</p></div>';
+  let html=`<div style="margin-bottom:14px">${dr('Email',a.email)}${dr('Nationality',a.nationality)}${dr('DOB',a.birth_date)}${dr('WhatsApp',a.whatsapp)}</div>
+    <div style="margin-bottom:14px">${dr('1st Choice',(a.faculty_1||'')+(a.program_1?' — '+a.program_1:''))}${dr('Funding',a.funding_source)}</div>
+    <div style="margin-bottom:14px">${dr('School',a.school_name)}${dr('GPA',a.school_gpa)}</div>`;
+  if(a.gemini_recommendation)html+=`<div class="gem-box"><h4>AI Analysis</h4><p>Recommendation: ${esc(a.gemini_recommendation)}</p>${a.gemini_summary?'<p style="margin-top:5px;font-size:13px;opacity:.85">'+esc(a.gemini_summary)+'</p>':''}</div>`;
+  if(a.psych_total)html+=`<div style="margin-bottom:14px">${sbar('Extraversion',a.psych_s1,40)}${sbar('Openness',a.psych_s2,40)}${sbar('Conscientiousness',a.psych_s3,40)}${sbar('Emotional Stability',a.psych_s4,40)}${sbar('Academic Motivation',a.psych_s5,40)}${sbar('Critical Thinking',a.psych_s6,40)}<div style="font-size:13px;font-weight:700;color:var(--navy);margin-top:6px">Total: ${a.psych_total||0}/240</div></div>`;
+  if(a.motivation_statement)html+=`<div style="margin-bottom:14px"><p style="font-size:13px;color:var(--text-mid);line-height:1.7;background:var(--cream);padding:12px;border-radius:8px">${esc(a.motivation_statement)}</p></div>`;
   if(['SUBMITTED','ADMIN_REVIEW','PASSED_ADMIN'].includes(a.stage)){
-    html+='<div style="display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">'
-      +'<textarea id="review-notes" placeholder="Notes..." style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:13px;resize:none;height:56px;outline:none"></textarea>'
-      +'<div style="display:flex;flex-direction:column;gap:6px">'
-      +'<button class="bsm green" onclick="setRevDecision(''+id+'','PASSED_ADMIN')"><i class="ti ti-check"></i> Pass</button>'
-      +'<button class="bsm red" onclick="setRevDecision(''+id+'','FAILED_ADMIN')"><i class="ti ti-x"></i> Fail</button></div></div>';
+    html+=`<div style="display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <textarea id="review-notes" placeholder="Notes..." style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:13px;resize:none;height:56px;outline:none"></textarea>
+      <div style="display:flex;flex-direction:column;gap:6px">
+      <button class="bsm green" onclick="setRevDecision('${id}','PASSED_ADMIN')"><i class="ti ti-check"></i> Pass</button>
+      <button class="bsm red" onclick="setRevDecision('${id}','FAILED_ADMIN')"><i class="ti ti-x"></i> Fail</button></div></div>`;
   }
-  if(a.drive_folder_url)html+='<div style="margin-top:10px"><a href="'+a.drive_folder_url+'" target="_blank" class="bsm outline"><i class="ti ti-folder"></i> View Documents</a></div>';
+  if(a.drive_folder_url)html+=`<div style="margin-top:10px"><a href="${a.drive_folder_url}" target="_blank" class="bsm outline"><i class="ti ti-folder"></i> View Documents</a></div>`;
   document.getElementById('md-body').innerHTML=html;openModal('modal-applicant');
 }
 async function setRevDecision(id,decision){
@@ -1180,8 +1170,11 @@ function renderEligGrid(){
   if(!data||!Object.keys(data).length){document.getElementById('elig-container').innerHTML='<p>No data.</p>';return;}
   let total=0,open=0,html='';
   for(const [fac,progs] of Object.entries(data)){
-    html+='<div class="elig-fac"><div class="elig-fac-hdr"><span>'+esc(fac)+'</span><label class="toggle"><input type="checkbox" '+(progs.every(p=>p.is_eligible)?'checked':'')+' onchange="setFacElig(''+esc(fac)+'',this.checked)"><span class="tslider"></span></label></div>';
-    for(const p of progs){total++;if(p.is_eligible)open++;html+='<div class="elig-prog"><span>'+esc(p.program)+'</span><label class="toggle"><input type="checkbox" '+(p.is_eligible?'checked':'')+' onchange="setProgElig(''+esc(fac)+'',''+esc(p.program)+'',this.checked)"><span class="tslider"></span></label></div>';}
+    html+=`<div class="elig-fac"><div class="elig-fac-hdr"><span>${esc(fac)}</span><label class="toggle"><input type="checkbox" ${progs.every(p=>p.is_eligible)?'checked':''} onchange="setFacElig('${esc(fac)}',this.checked)"><span class="tslider"></span></label></div>`;
+    for(const p of progs){
+      total++;if(p.is_eligible)open++;
+      html+=`<div class="elig-prog"><span>${esc(p.program)}</span><label class="toggle"><input type="checkbox" ${p.is_eligible?'checked':''} onchange="setProgElig('${esc(fac)}','${esc(p.program)}',this.checked)"><span class="tslider"></span></label></div>`;
+    }
     html+='</div>';
   }
   document.getElementById('elig-container').innerHTML=html;
@@ -1199,7 +1192,7 @@ async function loadScholConfig(){
 function renderScholList(){
   const c=document.getElementById('schol-container');
   if(!ADM.scholConfig.length){c.innerHTML='<p style="color:var(--text-light)">No scholarships.</p>';return;}
-  c.innerHTML=ADM.scholConfig.map(s=>'<div class="schol-row"><span>'+esc(s.label)+'</span><div style="display:flex;align-items:center;gap:10px"><label class="toggle"><input type="checkbox" '+(s.is_active?'checked':'')+' onchange="setScholStatus(''+esc(s.id)+'',this.checked)"><span class="tslider"></span></label><button class="bsm red" onclick="deleteSchol(''+esc(s.id)+'')"><i class="ti ti-trash"></i></button></div></div>').join('');
+  c.innerHTML=ADM.scholConfig.map(s=>`<div class="schol-row"><span>${esc(s.label)}</span><div style="display:flex;align-items:center;gap:10px"><label class="toggle"><input type="checkbox" ${s.is_active?'checked':''} onchange="setScholStatus('${esc(s.id)}',this.checked)"><span class="tslider"></span></label><button class="bsm red" onclick="deleteSchol('${esc(s.id)}')"><i class="ti ti-trash"></i></button></div></div>`).join('');
 }
 async function setScholStatus(id,val){await apiAdm('admin_set_scholarship_status',{id,is_active:val});}
 async function addScholarship(){const name=document.getElementById('new-schol-name').value.trim();if(!name)return toast('Enter a name.','err');const r=await apiAdm('admin_add_scholarship',{label:name});if(r.success){document.getElementById('new-schol-name').value='';loadScholConfig();toast('Added.');}else toast(r.message,'err');}
@@ -1223,7 +1216,7 @@ async function loadIntQueue(){
   if(r.success&&r.data){
     ADM.intQueue=r.data;
     if(!r.data.length){document.getElementById('tbody-int-queue').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-light);padding:20px">No applicants in queue.</td></tr>';return;}
-    document.getElementById('tbody-int-queue').innerHTML=r.data.map(a=>'<tr><td><strong>'+esc(a.full_name||'—')+'</strong></td><td>'+esc(a.nationality||'—')+'</td><td style="font-size:12px">'+esc(a.program_1||'—')+'</td><td>'+(a.psych_total?a.psych_total+'/240':'—')+'</td><td>'+gemBadge(a.gemini_recommendation)+'</td><td><button class="bsm navy" onclick="openIntModal(''+esc(a.applicant_id)+'')"><i class="ti ti-microphone"></i> Interview</button></td></tr>').join('');
+    document.getElementById('tbody-int-queue').innerHTML=r.data.map(a=>`<tr><td><strong>${esc(a.full_name||'—')}</strong></td><td>${esc(a.nationality||'—')}</td><td style="font-size:12px">${esc(a.program_1||'—')}</td><td>${a.psych_total?a.psych_total+'/240':'—'}</td><td>${gemBadge(a.gemini_recommendation)}</td><td><button class="bsm navy" onclick="openIntModal('${esc(a.applicant_id)}')"><i class="ti ti-microphone"></i> Interview</button></td></tr>`).join('');
   } else document.getElementById('tbody-int-queue').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--error);padding:20px">Failed.</td></tr>';
 }
 async function openIntModal(id){
@@ -1233,11 +1226,13 @@ async function openIntModal(id){
   document.getElementById('int-md-name').textContent=a.full_name||'—';
   document.getElementById('int-md-sub').innerHTML='Programme: <strong>'+esc(a.program_1||'—')+'</strong> · '+esc(a.nationality||'—');
   const secs=[{key:'personal_background',label:'Personal Background'},{key:'motivation',label:'Motivation & Purpose'},{key:'adaptability',label:'Adaptability'},{key:'independence',label:'Independence'},{key:'emotional_resilience',label:'Emotional Resilience'},{key:'social_skills',label:'Social Skills'},{key:'critical_thinking',label:'Critical Thinking'},{key:'overall',label:'Overall Impression'}];
-  let html='<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:14px">'+(a.psych_total?'<strong>SPQ:</strong> '+a.psych_total+'/240 &nbsp;·&nbsp; ':'')+'<strong>AI:</strong> '+gemBadge(a.gemini_recommendation)+'</div><p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Score each section 1 (Poor) – 5 (Excellent)</p>';
-  for(const sec of secs){html+='<div class="int-sec"><h4>'+esc(sec.label)+'</h4><div style="display:flex;gap:6px;margin-bottom:6px">'+[1,2,3,4,5].map(v=>'<div class="sopt" data-sec="'+sec.key+'" data-val="'+v+'" onclick="selScore(''+sec.key+'','+v+')">'+v+'</div>').join('')+'</div></div>';}
-  html+='<div class="ff" style="margin-top:4px"><label>Notes</label><textarea id="int-notes" rows="3" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none;resize:vertical"></textarea></div>'
-    +'<div class="ff"><label>Recommendation</label><select id="int-rec" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none"><option value="">— Select —</option><option value="RECOMMENDED">Recommended</option><option value="WAITLIST">Waitlist</option><option value="REJECTED">Not Recommended</option></select></div>'
-    +'<button class="btn-nav" style="width:100%;justify-content:center" onclick="submitInt(''+id+'')"><i class="ti ti-send"></i> Submit Result</button>';
+  let html=`<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:14px">${a.psych_total?'<strong>SPQ:</strong> '+a.psych_total+'/240 &nbsp;·&nbsp; ':''}<strong>AI:</strong> ${gemBadge(a.gemini_recommendation)}</div><p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Score each section 1 (Poor) – 5 (Excellent)</p>`;
+  for(const sec of secs){
+    html+=`<div class="int-sec"><h4>${esc(sec.label)}</h4><div style="display:flex;gap:6px;margin-bottom:6px">${[1,2,3,4,5].map(v=>`<div class="sopt" data-sec="${sec.key}" data-val="${v}" onclick="selScore('${sec.key}',${v})">${v}</div>`).join('')}</div></div>`;
+  }
+  html+=`<div class="ff" style="margin-top:4px"><label>Notes</label><textarea id="int-notes" rows="3" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none;resize:vertical"></textarea></div>
+    <div class="ff"><label>Recommendation</label><select id="int-rec" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none"><option value="">— Select —</option><option value="RECOMMENDED">Recommended</option><option value="WAITLIST">Waitlist</option><option value="REJECTED">Not Recommended</option></select></div>
+    <button class="btn-nav" style="width:100%;justify-content:center" onclick="submitInt('${id}')"><i class="ti ti-send"></i> Submit Result</button>`;
   document.getElementById('int-md-body').innerHTML=html;openModal('modal-interview');
 }
 function selScore(sec,val){document.querySelectorAll('.sopt[data-sec="'+sec+'"]').forEach(el=>el.classList.toggle('sel',parseInt(el.dataset.val)===val));}
@@ -1262,7 +1257,7 @@ async function loadHeadDecisions(){
 function renderHeadTable(data){
   const tb=document.getElementById('tbody-head-decisions');
   if(!data||!data.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:20px">No completed interviews yet.</td></tr>';return;}
-  tb.innerHTML=data.map(a=>'<tr><td><input type="checkbox" class="head-chk" value="'+esc(a.applicant_id)+'" onchange="updHeadBulk()"></td><td><strong>'+esc(a.full_name||'—')+'</strong></td><td>'+esc(a.nationality||'—')+'</td><td style="font-size:12px">'+esc(a.program_1||'—')+'</td><td>'+(a.interview_total?a.interview_total+'/40':'—')+'</td><td>'+gemBadge(a.interview_recommendation)+'</td><td>'+stageBadge(a.stage)+'</td><td><button class="bsm outline" onclick="openHeadModal(''+esc(a.applicant_id)+'')"><i class="ti ti-gavel"></i> Decide</button></td></tr>').join('');
+  tb.innerHTML=data.map(a=>`<tr><td><input type="checkbox" class="head-chk" value="${esc(a.applicant_id)}" onchange="updHeadBulk()"></td><td><strong>${esc(a.full_name||'—')}</strong></td><td>${esc(a.nationality||'—')}</td><td style="font-size:12px">${esc(a.program_1||'—')}</td><td>${a.interview_total?a.interview_total+'/40':'—'}</td><td>${gemBadge(a.interview_recommendation)}</td><td>${stageBadge(a.stage)}</td><td><button class="bsm outline" onclick="openHeadModal('${esc(a.applicant_id)}')"><i class="ti ti-gavel"></i> Decide</button></td></tr>`).join('');
 }
 function toggleHeadChk(cb){document.querySelectorAll('.head-chk').forEach(c=>c.checked=cb.checked);updHeadBulk();}
 function updHeadBulk(){const n=[...document.querySelectorAll('.head-chk:checked')].length;document.getElementById('btn-head-acc').style.display=n?'':'none';document.getElementById('btn-head-rej').style.display=n?'':'none';}
@@ -1272,10 +1267,10 @@ async function openHeadModal(id){
   const a=r.data;
   document.getElementById('hd-md-name').textContent=a.full_name||'—';
   document.getElementById('hd-md-sub').textContent=(a.program_1||'—')+' · '+(a.nationality||'—');
-  document.getElementById('hd-md-body').innerHTML='<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px">'+dr('SPQ',(a.psych_total||'—')+'/240')+dr('AI Rec.',gemBadge(a.gemini_recommendation))+dr('Interview',(a.interview_total||'—')+'/40')+dr('Int. Rec.',gemBadge(a.interview_recommendation))+'</div>'
-    +(a.interview_notes?'<div style="background:var(--cream);border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--text-mid)"><strong>Notes:</strong><br>'+esc(a.interview_notes)+'</div>':'')
-    +'<div class="ff"><label>Notes</label><textarea id="hd-notes" rows="2" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none;resize:none"></textarea></div>'
-    +'<div style="display:flex;gap:8px;margin-top:8px"><button class="bsm green" style="flex:1;justify-content:center" onclick="setHeadDec(''+id+'','ACCEPTED')"><i class="ti ti-circle-check"></i> Accept</button><button class="bsm outline" style="flex:1;justify-content:center" onclick="setHeadDec(''+id+'','WAITLISTED')"><i class="ti ti-clock"></i> Waitlist</button><button class="bsm red" style="flex:1;justify-content:center" onclick="setHeadDec(''+id+'','REJECTED')"><i class="ti ti-x"></i> Reject</button></div>';
+  document.getElementById('hd-md-body').innerHTML=`<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px">${dr('SPQ',(a.psych_total||'—')+'/240')}${dr('AI Rec.',gemBadge(a.gemini_recommendation))}${dr('Interview',(a.interview_total||'—')+'/40')}${dr('Int. Rec.',gemBadge(a.interview_recommendation))}</div>
+    ${a.interview_notes?'<div style="background:var(--cream);border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--text-mid)"><strong>Notes:</strong><br>'+esc(a.interview_notes)+'</div>':''}
+    <div class="ff"><label>Notes</label><textarea id="hd-notes" rows="2" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none;resize:none"></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:8px"><button class="bsm green" style="flex:1;justify-content:center" onclick="setHeadDec('${id}','ACCEPTED')"><i class="ti ti-circle-check"></i> Accept</button><button class="bsm outline" style="flex:1;justify-content:center" onclick="setHeadDec('${id}','WAITLISTED')"><i class="ti ti-clock"></i> Waitlist</button><button class="bsm red" style="flex:1;justify-content:center" onclick="setHeadDec('${id}','REJECTED')"><i class="ti ti-x"></i> Reject</button></div>`;
   openModal('modal-head-decision');
 }
 async function setHeadDec(id,decision){const r=await apiAdm('head_set_decision',{applicant_id:id,decision,notes:document.getElementById('hd-notes')?document.getElementById('hd-notes').value:''});if(r.success){toast('Saved.');closeModal('modal-head-decision');loadHeadDecisions();loadHeadSummary();}else toast(r.message,'err');}
@@ -1295,8 +1290,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   buildNats();buildYears();loadEligibleProgs();
   showSec('instructions');setStep(1);
 
-  // Restore an existing session, if any. Staff takes priority check first
-  // (cheap localStorage read), then applicant.
   const staffRestored=restoreStaffSession();
   if(!staffRestored && S.token){
     showSec('apply');
@@ -1307,9 +1300,6 @@ window.addEventListener('DOMContentLoaded',()=>{
 </script>
 
 <!-- ===================== ADMIN SHELL ===================== -->
-<!-- Staff sign in through the same landing-page "Sign In" form as applicants.
-     unified_login on the backend detects the role; doLogin() shows this
-     shell directly (no separate staff login screen, no #staff URL). -->
 <div id="admin-shell">
 
   <!-- DASHBOARD -->
@@ -1541,7 +1531,6 @@ window.addEventListener('DOMContentLoaded',()=>{
     <div id="hd-md-body"></div>
   </div>
 </div>
-
 
 </body>
 </html>
