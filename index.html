@@ -649,20 +649,26 @@ table.at input[type=checkbox]{accent-color:var(--navy);width:15px;height:15px;cu
     </div>
   </div>
 
-  <!-- STATUS -->
-  <div id="panel-status" class="tab-panel">
-    <div class="app-form" style="max-width:580px">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px">
-        <div style="width:42px;height:42px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:17px"><i class="ti ti-user"></i></div>
-        <div><div style="font-size:15px;font-weight:600;color:var(--navy)" id="stName">—</div><div style="font-size:13px;color:var(--text-light)" id="stId">—</div></div>
+  <!-- APPLICANT DASHBOARD -->
+  <div id="panel-dashboard" class="tab-panel">
+    <div class="app-form" style="max-width:640px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:42px;height:42px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:17px"><i class="ti ti-user"></i></div>
+          <div><div style="font-size:15px;font-weight:600;color:var(--navy)" id="dashName">—</div><div style="font-size:13px;color:var(--text-light)" id="dashId">—</div></div>
+        </div>
+        <button class="btn-sec" onclick="doAppLogout()" style="padding:7px 16px;font-size:12px"><i class="ti ti-logout"></i> Sign Out</button>
       </div>
-      <div>
-        <div class="st-item"><div class="st-dot done"><i class="ti ti-circle-check"></i></div><div class="st-content"><h4 data-t="st1_h">Application Submitted</h4><p data-t="st1_p">Your application and documents have been received.</p><div class="st-date" id="st1d">—</div></div></div>
-        <div class="st-item"><div class="st-dot active"><i class="ti ti-file-check"></i></div><div class="st-content"><h4 data-t="st2_h">Administrative Review</h4><p data-t="st2_p">Our team is currently reviewing your application and documents.</p></div></div>
-        <div class="st-item"><div class="st-dot pending"><i class="ti ti-users"></i></div><div class="st-content"><h4 style="opacity:.45" data-t="st3_h">Interview Stage</h4><p style="opacity:.45" data-t="st3_p">If you pass the administrative review, you will be invited for an interview.</p></div></div>
-        <div class="st-item"><div class="st-dot pending"><i class="ti ti-trophy"></i></div><div class="st-content"><h4 style="opacity:.45" data-t="st4_h">Final Decision</h4><p style="opacity:.45" data-t="st4_p">The final admission decision will be communicated via email and your portal.</p></div></div>
-      </div>
-      <div class="nb" style="margin-top:10px"><i class="ti ti-bell"></i><p data-t="status_note">Please check your email and this portal regularly. All updates regarding your application — including interview invitations and final decisions — will be sent to your registered email address.</p></div>
+
+      <div id="dashCTA"></div>
+
+      <div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.8px;margin:22px 0 12px">Application Status</div>
+      <div id="dashTracker"></div>
+
+      <div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.8px;margin:22px 0 12px">Document Checklist</div>
+      <div id="dashDocs" class="doc-grid"></div>
+
+      <div class="nb" style="margin-top:18px"><i class="ti ti-bell"></i><p data-t="status_note">Please check your email and this portal regularly. All updates — including interview invitations and final decisions — will be sent to your registered email address.</p></div>
     </div>
   </div>
 </div><!-- /sec-apply -->
@@ -678,19 +684,21 @@ table.at input[type=checkbox]{accent-color:var(--navy);width:15px;height:15px;cu
 <div class="toast" id="toast"><i class="ti ti-circle-check" id="toastIcon"></i><span id="toastMsg"></span></div>
 
 <script>
+// ==================== CONFIG ====================
 const GAS_URL='https://script.google.com/macros/s/AKfycbxZZWMWNUhSyHm_VyreXDedbWmgoip2J0y0pb7n8qlb6IiDosu_U40IRkTqz4E7JfNkOw/exec';
 let S={token:localStorage.getItem('umb_token')||'',email:'',applicant_id:'',full_name:''};
 let uploadTarget='';
 let lang='en';
 
+// ==================== TRANSLATIONS ====================
 const T={
-  en:{hero_badge:'Applications Open — Academic Year 2025/2026',hero_h1a:'Study at',hero_sub:"Join a growing community of international students at one of Indonesia's most dynamic Islamic universities.",btn_apply_now:'Apply Now',btn_learn:'How to Apply',stat_faculties:'Faculties',stat_programs:'Programmes',stat_countries:'Countries',stat_intl:'Intl. Classes',sl_guide:'Before You Apply',st_guide:'Everything You Need to Know',sd_guide:'Please read this guide carefully before beginning your application.',time_notice:'<strong>Estimated time:</strong> 45–90 minutes for Part 1. You may save progress and return anytime. Part 2 takes ~15 minutes and must be completed in one session.',ic1h:'Step 1 — Create Account',ic1p:'Register with your email. A 6-digit code is sent to your inbox to activate your account.',ic2h:'Step 2 — Complete Your Data',ic2p:'Fill in personal information, education background, and programme preferences. Save anytime.',ic3h:'Step 3 — Upload Documents',ic3p:'Upload required documents as PDF (max 5 MB each).',ic4h:'Step 4 — Complete Questionnaire',ic4p:'Answer the Student Profile Questionnaire — a brief self-reflection to help us understand you.',cl_title:'Documents to Prepare',tpl_title:'Download Official Templates',tpl1:'Recommendation Letter',tpl2:'Financial Support Declaration',tpl3:'No-Work Declaration',tpl4:'Application Guide (Full)',btn_start:'Start My Application',sl_apply:'Online Application',st_apply:'International Admission',s1:'Account',s2:'Verify',s3:'Personal Data',s4:'Documents',s5:'Questionnaire',s6:'Submit',tab_reg:'Create Account',tab_login:'Sign In',reg_h:'Create Your Account',reg_sub:'A 6-digit verification code will be sent to your email.',l_name:'Full Name',l_email:'Email Address',l_pass:'Password',l_pass2:'Confirm Password',email_tip:'Use an email you check regularly. All updates will be sent here.',btn_register:'Create Account',have_acc:'Already have an account?',sign_in:'Sign in',login_h:'Welcome Back',login_sub:'Continue where you left off.',forgot:'Forgot password?',btn_signin:'Sign In',otp_h:'Verify Your Email',btn_verify:'Verify & Continue',no_code:"Didn't receive the code?",resend:'Resend',spq_h:'Student Profile Questionnaire',spq_p:'This questionnaire helps us understand your background and personal strengths. There are no right or wrong answers — please respond honestly.',btn_back:'Back',btn_submit:'Submit Application',btn_draft:'Save Draft',btn_cont:'Save & Continue',save_note:'Progress saved automatically',succ_h:'Application Submitted!',succ_p:'Thank you for applying to UMB. A full confirmation has been sent to your email.',succ_note:'If your application passes any stage, you will be notified by email and your portal will be updated.',btn_track:'Track My Application',st1_h:'Application Submitted',st1_p:'Your application and documents have been received.',st2_h:'Administrative Review',st2_p:'Our team is reviewing your application.',st3_h:'Interview Stage',st3_p:'If you pass administrative review, you will be invited for an interview.',st4_h:'Final Decision',st4_p:'The final decision will be communicated via email.',status_note:'Check your email and this portal regularly for updates.',optional:'Optional',fs_personal:'Personal Data',fs_parent:'Parent / Guardian Data',fs_emg:'Emergency Contact in Indonesia',fs_edu:'Educational Background',fs_lang:'Language Proficiency',fs_prog:'Programme of Study',fs_add:'Additional Information',fs_docs:'Document Upload',fs_decl:'Declaration & Agreement',d1:'Valid passport (min. 18 months validity from application date)',d2:'Passport-size photo — white background, JPG or PNG',d3:'High school diploma + certified sworn translation',d4:'Final transcript + certified sworn translation',d5:'Teacher recommendation letter (UMB template)',d6:'Financial support declaration — signed & stamped',d7:'Health certificate from certified hospital',d8:'No-work declaration (UMB template)',d9:'Language certificate (TOEFL/IELTS) — if available',d10:'Scholarship letter — if applicable'},
-  ar:{hero_badge:'التسجيل مفتوح — 2025/2026',hero_h1a:'ادرس في',hero_sub:'انضم إلى مجتمع متنامٍ من الطلاب الدوليين.',btn_apply_now:'سجّل الآن',btn_learn:'كيفية التقديم',tab_reg:'إنشاء حساب',tab_login:'تسجيل الدخول',reg_h:'إنشاء حسابك',reg_sub:'سيتم إرسال رمز تحقق من 6 أرقام.',l_name:'الاسم الكامل',l_email:'البريد الإلكتروني',l_pass:'كلمة المرور',l_pass2:'تأكيد كلمة المرور',btn_register:'إنشاء حساب',btn_signin:'تسجيل الدخول',btn_verify:'تحقق ومتابعة',spq_h:'استبيان الملف الطلابي',spq_p:'يساعدنا هذا الاستبيان على فهم خلفيتك ونقاط قوتك. لا توجد إجابات صحيحة أو خاطئة.',btn_submit:'إرسال الطلب',btn_back:'رجوع',btn_draft:'حفظ مسودة',btn_cont:'حفظ ومتابعة',optional:'اختياري',succ_h:'تم إرسال الطلب!',succ_p:'شكراً لتقديمك. تم إرسال تأكيد إلى بريدك الإلكتروني.',btn_track:'تتبع طلبي'},
-  zh:{hero_badge:'招生开放中 — 2025/2026',hero_h1a:'就读于',hero_sub:'加入印度尼西亚最具活力的伊斯兰大学之一。',btn_apply_now:'立即申请',btn_learn:'申请流程',tab_reg:'创建账户',tab_login:'登录',reg_h:'创建您的账户',reg_sub:'验证码将发送至您的邮箱。',l_name:'全名',l_email:'电子邮件',l_pass:'密码',l_pass2:'确认密码',btn_register:'创建账户',btn_signin:'登录',btn_verify:'验证并继续',spq_h:'学生档案问卷',spq_p:'此问卷帮助我们了解您的背景，没有对错之分，请如实作答。',btn_submit:'提交申请',btn_back:'返回',btn_draft:'保存草稿',btn_cont:'保存并继续',optional:'选填',succ_h:'申请已提交！',succ_p:'感谢您的申请。确认邮件已发送至您的邮箱。',btn_track:'追踪我的申请'},
-  fr:{hero_badge:'Candidatures ouvertes — 2025/2026',hero_h1a:'Étudiez à',hero_sub:"Rejoignez une communauté dynamique d'étudiants internationaux.",btn_apply_now:'Postuler maintenant',btn_learn:'Comment postuler',tab_reg:'Créer un compte',tab_login:'Se connecter',reg_h:'Créer votre compte',reg_sub:'Un code de vérification à 6 chiffres sera envoyé.',l_name:'Nom complet',l_email:'Adresse e-mail',l_pass:'Mot de passe',l_pass2:'Confirmer le mot de passe',btn_register:'Créer un compte',btn_signin:'Se connecter',btn_verify:'Vérifier et continuer',spq_h:'Questionnaire de profil étudiant',spq_p:"Ce questionnaire nous aide à mieux vous connaître. Il n'y a pas de bonnes ou mauvaises réponses.",btn_submit:'Soumettre la candidature',btn_back:'Retour',btn_draft:'Sauvegarder',btn_cont:'Sauvegarder et continuer',optional:'Optionnel',succ_h:'Candidature soumise !',succ_p:'Merci pour votre candidature. Une confirmation a été envoyée.',btn_track:'Suivre ma candidature'},
-  th:{hero_badge:'เปิดรับสมัครแล้ว — 2025/2026',hero_h1a:'ศึกษาที่',hero_sub:'เข้าร่วมชุมชนนักศึกษานานาชาติที่กำลังเติบโต',btn_apply_now:'สมัครเลย',btn_learn:'วิธีการสมัคร',tab_reg:'สร้างบัญชี',tab_login:'เข้าสู่ระบบ',reg_h:'สร้างบัญชีของคุณ',reg_sub:'รหัสยืนยัน 6 หลักจะถูกส่งไปยังอีเมลของคุณ',l_name:'ชื่อ-นามสกุล',l_email:'อีเมล',l_pass:'รหัสผ่าน',l_pass2:'ยืนยันรหัสผ่าน',btn_register:'สร้างบัญชี',btn_signin:'เข้าสู่ระบบ',btn_verify:'ยืนยันและดำเนินต่อ',spq_h:'แบบสอบถามโปรไฟล์นักศึกษา',spq_p:'ไม่มีคำตอบที่ถูกหรือผิด กรุณาตอบตามความเป็นจริง',btn_submit:'ส่งใบสมัคร',btn_back:'ย้อนกลับ',btn_draft:'บันทึกร่าง',btn_cont:'บันทึกและดำเนินต่อ',optional:'ไม่บังคับ',succ_h:'ส่งใบสมัครแล้ว!',succ_p:'ขอบคุณสำหรับการสมัคร ได้ส่งอีเมลยืนยันแล้ว',btn_track:'ติดตามใบสมัคร'},
-  ms:{hero_badge:'Permohonan Dibuka — 2025/2026',hero_h1a:'Belajar di',hero_sub:'Sertai komuniti pelajar antarabangsa yang berkembang.',btn_apply_now:'Mohon Sekarang',btn_learn:'Cara Memohon',tab_reg:'Buat Akaun',tab_login:'Log Masuk',reg_h:'Buat Akaun Anda',reg_sub:'Kod pengesahan 6 digit akan dihantar ke e-mel anda.',l_name:'Nama Penuh',l_email:'Alamat E-mel',l_pass:'Kata Laluan',l_pass2:'Sahkan Kata Laluan',btn_register:'Buat Akaun',btn_signin:'Log Masuk',btn_verify:'Sahkan & Teruskan',spq_h:'Soal Selidik Profil Pelajar',spq_p:'Tiada jawapan betul atau salah. Sila jawab dengan jujur.',btn_submit:'Hantar Permohonan',btn_back:'Kembali',btn_draft:'Simpan Draf',btn_cont:'Simpan & Teruskan',optional:'Pilihan',succ_h:'Permohonan Dihantar!',succ_p:'Terima kasih. E-mel pengesahan telah dihantar.',btn_track:'Jejak Permohonan Saya'},
-  ur:{hero_badge:'داخلہ کھلا ہے — 2025/2026',hero_h1a:'پڑھیں',hero_sub:'انڈونیشیا کی متحرک اسلامی یونیورسٹی میں شامل ہوں',btn_apply_now:'ابھی درخواست دیں',btn_learn:'درخواست کا طریقہ',tab_reg:'اکاؤنٹ بنائیں',tab_login:'سائن ان',reg_h:'اپنا اکاؤنٹ بنائیں',reg_sub:'آپ کے ای میل پر 6 ہندسوں کا کوڈ بھیجا جائے گا۔',l_name:'مکمل نام',l_email:'ای میل',l_pass:'پاس ورڈ',l_pass2:'پاس ورڈ کی تصدیق',btn_register:'اکاؤنٹ بنائیں',btn_signin:'سائن ان',btn_verify:'تصدیق کریں',spq_h:'طالب علم پروفائل سوالنامہ',spq_p:'کوئی درست یا غلط جواب نہیں۔ براہ کرم سچائی سے جواب دیں۔',btn_submit:'درخواست جمع کریں',btn_back:'واپس',btn_draft:'ڈرافٹ محفوظ کریں',btn_cont:'محفوظ کریں اور جاری رکھیں',optional:'اختیاری',succ_h:'درخواست جمع ہو گئی!',succ_p:'آپ کی درخواست موصول ہو گئی۔ تصدیقی ای میل بھیجا گیا۔',btn_track:'درخواست ٹریک کریں'}
+  en:{hero_badge:'Applications Open — Academic Year 2025/2026',hero_h1a:'Study at',hero_sub:"Join a growing community of international students at one of Indonesia's most dynamic Islamic universities.",btn_apply_now:'Apply Now',btn_learn:'How to Apply',stat_faculties:'Faculties',stat_programs:'Programmes',stat_countries:'Countries',stat_intl:'Intl. Classes',sl_guide:'Before You Apply',st_guide:'Everything You Need to Know',sd_guide:'Please read this guide carefully before beginning your application.',time_notice:'<strong>Estimated time:</strong> 45–90 minutes for Part 1. Save progress anytime. Part 2 takes ~15 minutes in one session.',ic1h:'Step 1 — Create Account',ic1p:'Register with your email. A 6-digit code is sent to activate your account.',ic2h:'Step 2 — Complete Your Data',ic2p:'Fill in personal info, education background, and programme preferences.',ic3h:'Step 3 — Upload Documents',ic3p:'Upload required documents as PDF (max 5 MB each).',ic4h:'Step 4 — Complete Questionnaire',ic4p:'Answer the Student Profile Questionnaire — a brief self-reflection.',cl_title:'Documents to Prepare',tpl_title:'Download Official Templates',tpl1:'Recommendation Letter',tpl2:'Financial Support Declaration',tpl3:'No-Work Declaration',tpl4:'Application Guide',btn_start:'Start My Application',sl_apply:'Online Application',st_apply:'International Admission',s1:'Account',s2:'Verify',s3:'Personal Data',s4:'Documents',s5:'Questionnaire',s6:'Submit',tab_reg:'Create Account',tab_login:'Sign In',reg_h:'Create Your Account',reg_sub:'A 6-digit verification code will be sent to your email.',l_name:'Full Name',l_email:'Email Address',l_pass:'Password',l_pass2:'Confirm Password',email_tip:'Use an email you check regularly. All updates will be sent here.',btn_register:'Create Account',have_acc:'Already have an account?',sign_in:'Sign in',login_h:'Welcome Back',login_sub:'Continue where you left off.',forgot:'Forgot password?',btn_signin:'Sign In',otp_h:'Verify Your Email',btn_verify:'Verify & Continue',no_code:"Didn't receive the code?",resend:'Resend',spq_h:'Student Profile Questionnaire',spq_p:'This questionnaire helps us understand your background and personal strengths. There are no right or wrong answers — please respond honestly.',btn_back:'Back',btn_submit:'Submit Application',btn_draft:'Save Draft',btn_cont:'Save & Continue',save_note:'Progress saved automatically',succ_h:'Application Submitted!',succ_p:'Thank you for applying to UMB. A confirmation has been sent to your email.',succ_note:'You will be notified by email if your application progresses.',btn_track:'Track My Application',st1_h:'Application Submitted',st1_p:'Your application and documents have been received.',st2_h:'Administrative Review',st2_p:'Our team is reviewing your application.',st3_h:'Interview Stage',st3_p:'If you pass review, you will be invited for interview.',st4_h:'Final Decision',st4_p:'The final decision will be communicated via email.',status_note:'Check your email and this portal regularly for updates.',optional:'Optional'},
+  ar:{hero_badge:'التسجيل مفتوح',hero_h1a:'ادرس في',hero_sub:'انضم إلى مجتمع متنامٍ من الطلاب الدوليين.',btn_apply_now:'سجّل الآن',btn_learn:'كيفية التقديم',tab_reg:'إنشاء حساب',tab_login:'تسجيل الدخول',reg_h:'إنشاء حسابك',reg_sub:'سيتم إرسال رمز تحقق من 6 أرقام.',btn_register:'إنشاء حساب',btn_signin:'تسجيل الدخول',btn_verify:'تحقق ومتابعة',spq_h:'استبيان الملف الطلابي',spq_p:'لا توجد إجابات صحيحة أو خاطئة. أجب بصدق.',btn_submit:'إرسال الطلب',btn_back:'رجوع',btn_draft:'حفظ مسودة',btn_cont:'حفظ ومتابعة',optional:'اختياري',succ_h:'تم إرسال الطلب!',btn_track:'تتبع طلبي'},
+  zh:{hero_badge:'招生开放中',hero_h1a:'就读于',hero_sub:'加入印度尼西亚最具活力的伊斯兰大学。',btn_apply_now:'立即申请',btn_learn:'申请流程',tab_reg:'创建账户',tab_login:'登录',reg_h:'创建您的账户',reg_sub:'验证码将发送至您的邮箱。',btn_register:'创建账户',btn_signin:'登录',btn_verify:'验证并继续',spq_h:'学生档案问卷',spq_p:'没有对错之分，请如实作答。',btn_submit:'提交申请',btn_back:'返回',btn_draft:'保存草稿',btn_cont:'保存并继续',optional:'选填',succ_h:'申请已提交！',btn_track:'追踪申请'},
+  fr:{hero_badge:'Candidatures ouvertes',hero_h1a:'Étudiez à',hero_sub:"Rejoignez une communauté dynamique d'étudiants internationaux.",btn_apply_now:'Postuler maintenant',btn_learn:'Comment postuler',tab_reg:'Créer un compte',tab_login:'Se connecter',reg_h:'Créer votre compte',reg_sub:'Un code à 6 chiffres sera envoyé.',btn_register:'Créer un compte',btn_signin:'Se connecter',btn_verify:'Vérifier et continuer',spq_h:'Questionnaire de profil étudiant',spq_p:"Pas de bonnes ou mauvaises réponses. Répondez honnêtement.",btn_submit:'Soumettre la candidature',btn_back:'Retour',btn_draft:'Sauvegarder',btn_cont:'Sauvegarder et continuer',optional:'Optionnel',succ_h:'Candidature soumise !',btn_track:'Suivre ma candidature'},
+  th:{hero_badge:'เปิดรับสมัครแล้ว',hero_h1a:'ศึกษาที่',hero_sub:'เข้าร่วมชุมชนนักศึกษานานาชาติ',btn_apply_now:'สมัครเลย',btn_learn:'วิธีการสมัคร',tab_reg:'สร้างบัญชี',tab_login:'เข้าสู่ระบบ',reg_h:'สร้างบัญชีของคุณ',reg_sub:'รหัสยืนยัน 6 หลักจะถูกส่งไปยังอีเมล',btn_register:'สร้างบัญชี',btn_signin:'เข้าสู่ระบบ',btn_verify:'ยืนยันและดำเนินต่อ',spq_h:'แบบสอบถามโปรไฟล์นักศึกษา',spq_p:'ไม่มีคำตอบที่ถูกหรือผิด',btn_submit:'ส่งใบสมัคร',btn_back:'ย้อนกลับ',btn_draft:'บันทึกร่าง',btn_cont:'บันทึกและดำเนินต่อ',optional:'ไม่บังคับ',succ_h:'ส่งใบสมัครแล้ว!',btn_track:'ติดตามใบสมัคร'},
+  ms:{hero_badge:'Permohonan Dibuka',hero_h1a:'Belajar di',hero_sub:'Sertai komuniti pelajar antarabangsa.',btn_apply_now:'Mohon Sekarang',btn_learn:'Cara Memohon',tab_reg:'Buat Akaun',tab_login:'Log Masuk',reg_h:'Buat Akaun Anda',reg_sub:'Kod pengesahan akan dihantar.',btn_register:'Buat Akaun',btn_signin:'Log Masuk',btn_verify:'Sahkan & Teruskan',spq_h:'Soal Selidik Profil Pelajar',spq_p:'Tiada jawapan betul atau salah.',btn_submit:'Hantar Permohonan',btn_back:'Kembali',btn_draft:'Simpan Draf',btn_cont:'Simpan & Teruskan',optional:'Pilihan',succ_h:'Permohonan Dihantar!',btn_track:'Jejak Permohonan'},
+  ur:{hero_badge:'داخلہ کھلا ہے',hero_h1a:'پڑھیں',hero_sub:'انڈونیشیا کی متحرک اسلامی یونیورسٹی میں شامل ہوں',btn_apply_now:'ابھی درخواست دیں',btn_learn:'درخواست کا طریقہ',tab_reg:'اکاؤنٹ بنائیں',tab_login:'سائن ان',reg_h:'اپنا اکاؤنٹ بنائیں',reg_sub:'تصدیقی کوڈ بھیجا جائے گا۔',btn_register:'اکاؤنٹ بنائیں',btn_signin:'سائن ان',btn_verify:'تصدیق کریں',spq_h:'طالب علم پروفائل سوالنامہ',spq_p:'کوئی درست یا غلط جواب نہیں۔',btn_submit:'درخواست جمع کریں',btn_back:'واپس',btn_draft:'ڈرافٹ',btn_cont:'محفوظ کریں',optional:'اختیاری',succ_h:'درخواست جمع ہو گئی!',btn_track:'ٹریک کریں'}
 };
 
 function tr(k){return(T[lang]&&T[lang][k])?T[lang][k]:(T.en[k]||k);}
@@ -704,23 +712,21 @@ function setLang(l){
   document.querySelectorAll('[data-t]').forEach(el=>{const v=tr(el.dataset.t);if(v)el.innerHTML=v;});
 }
 
+// ==================== NAVIGATION ====================
 function showSec(id){
   document.querySelectorAll('.section').forEach(s=>s.style.display='none');
   const s=document.getElementById('sec-'+id);
   if(s){s.style.display='block';setTimeout(()=>s.scrollIntoView({behavior:'smooth',block:'start'}),50);}
 }
-
 function showPanel(id){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   const p=document.getElementById('panel-'+id);
   if(p)p.classList.add('active');
 }
-
 function switchTab(tab){
   document.querySelectorAll('#authTabs .tab-btn').forEach((b,i)=>b.classList.toggle('active',['register','login'][i]===tab));
   showPanel(tab);
 }
-
 function setStep(n){
   for(let i=1;i<=6;i++){
     const d=document.getElementById('sd'+i);
@@ -731,7 +737,7 @@ function setStep(n){
   }
 }
 
-// AUTH
+// ==================== AUTH ====================
 async function doRegister(){
   const n=document.getElementById('rn').value.trim();
   const e=document.getElementById('re').value.trim();
@@ -744,22 +750,33 @@ async function doRegister(){
   if(r.success){S.email=e;document.getElementById('otp_email').textContent=e;showPanel('otp');setStep(2);toast('Verification code sent!');}
   else toast(r.message||'Registration failed.','err');
 }
-
 async function doLogin(){
   const e=document.getElementById('le').value.trim();
   const p=document.getElementById('lp').value;
   if(!e||!p)return toast('Please enter your email and password.','err');
-  const r=await api('login',{email:e,password:p});
-  if(r.success){
-    S={token:r.token,email:e,applicant_id:r.applicant_id,full_name:r.full_name};
-    localStorage.setItem('umb_token',r.token);
-    if(!r.part1_complete){showPanel('part1');setStep(3);}
-    else if(!r.part2_complete){showPanel('part2');setStep(5);buildSPQ();}
-    else goToStatus();
-    toast('Welcome back, '+r.full_name+'!');
-  } else toast(r.message||'Login failed.','err');
-}
+  const r=await api('unified_login',{email:e,password:p});
+  if(!r.success){toast(r.message||'Login failed.','err');return;}
 
+  if(r.type==='staff'){
+    ADM.token=r.token;ADM.role=r.role;ADM.name=r.full_name;
+    localStorage.setItem('umb_staff_token',r.token);
+    localStorage.setItem('umb_staff_role',r.role);
+    localStorage.setItem('umb_staff_name',r.full_name);
+    document.getElementById('admin-shell').style.display='block';
+    document.body.style.overflow='hidden';
+    document.getElementById('adm-login').style.display='none';
+    showAdminDashboard(r.role,r.full_name);
+    toast('Welcome, '+r.full_name+'!');
+    return;
+  }
+
+  // type === 'applicant'
+  S={token:r.token,email:e,applicant_id:r.applicant_id,full_name:r.full_name};
+  localStorage.setItem('umb_token',r.token);
+  document.getElementById('authTabs').style.display='none';
+  goToDashboard();
+  toast('Welcome back, '+r.full_name+'!');
+}
 async function doVerifyOTP(){
   const d=[...document.querySelectorAll('.otp-d')].map(i=>i.value).join('');
   if(d.length<6)return toast('Please enter the complete 6-digit code.','err');
@@ -771,29 +788,25 @@ async function doVerifyOTP(){
     toast('Email verified! Please complete your application.');
   } else toast(r.message||'Verification failed.','err');
 }
-
 async function doResendOTP(){
   const r=await api('resend_otp',{email:S.email});
   toast(r.success?'New code sent!':r.message,r.success?'ok':'err');
 }
-
 function otpNav(inp,idx){if(inp.value.length===1){const n=document.querySelectorAll('.otp-d')[idx+1];if(n)n.focus();}}
 
-// DROPDOWNS
+// ==================== DROPDOWNS ====================
 function buildNats(){
-  const cc=['Afghanistan','Albania','Algeria','Argentina','Australia','Austria','Azerbaijan','Bahrain','Bangladesh','Belgium','Bolivia','Bosnia and Herzegovina','Brazil','Brunei','Bulgaria','Cambodia','Cameroon','Canada','Chad','Chile','China','Colombia','Croatia','Czech Republic','Denmark','Ecuador','Egypt','Ethiopia','Finland','France','Germany','Ghana','Greece','Hungary','India','Indonesia','Iran','Iraq','Ireland','Italy','Japan','Jordan','Kazakhstan','Kenya','Kuwait','Kyrgyzstan','Laos','Lebanon','Libya','Malaysia','Mali','Mauritania','Mexico','Morocco','Myanmar','Nepal','Netherlands','Niger','Nigeria','Norway','Oman','Pakistan','Palestine','Philippines','Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Senegal','Serbia','Sierra Leone','Singapore','Somalia','South Africa','South Korea','Spain','Sri Lanka','Sudan','Sweden','Switzerland','Syria','Tajikistan','Tanzania','Thailand','Tunisia','Turkey','Turkmenistan','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uzbekistan','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'];
+  const cc=['Afghanistan','Albania','Algeria','Argentina','Australia','Austria','Azerbaijan','Bahrain','Bangladesh','Belgium','Bolivia','Bosnia','Brazil','Brunei','Bulgaria','Cambodia','Canada','Chad','Chile','China','Colombia','Croatia','Czech Republic','Denmark','Ecuador','Egypt','Ethiopia','Finland','France','Germany','Ghana','Greece','Hungary','India','Indonesia','Iran','Iraq','Ireland','Italy','Japan','Jordan','Kazakhstan','Kenya','Kuwait','Kyrgyzstan','Laos','Lebanon','Libya','Malaysia','Mali','Mauritania','Mexico','Morocco','Myanmar','Nepal','Netherlands','Niger','Nigeria','Norway','Oman','Pakistan','Palestine','Philippines','Poland','Portugal','Qatar','Romania','Russia','Saudi Arabia','Senegal','Serbia','Sierra Leone','Singapore','Somalia','South Africa','South Korea','Spain','Sri Lanka','Sudan','Sweden','Switzerland','Syria','Tajikistan','Tanzania','Thailand','Tunisia','Turkey','Turkmenistan','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uzbekistan','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'];
   const s=document.getElementById('f_nationality');
   s.innerHTML='<option value="">— Select Nationality —</option>';
   cc.forEach(c=>s.innerHTML+=`<option value="${c}">${c}</option>`);
 }
-
 function buildYears(){
   const sy=document.getElementById('f_school_year_start');
   const ey=document.getElementById('f_school_year_end');
   sy.innerHTML=ey.innerHTML='<option value="">— Year —</option>';
   for(let y=new Date().getFullYear();y>=1990;y--){sy.innerHTML+=`<option>${y}</option>`;ey.innerHTML+=`<option>${y}</option>`;}
 }
-
 let PROGS={};
 async function loadEligibleProgs(){
   const r=await api('get_eligible_programs',{});
@@ -804,29 +817,28 @@ async function loadEligibleProgs(){
     Object.keys(PROGS).forEach(f=>s.innerHTML+=`<option value="${f}">${f}</option>`);
   });
 }
-
 function loadProgs(progId,facId){
   const f=document.getElementById(facId).value;
   const s=document.getElementById(progId);
   s.innerHTML='<option value="">— Select Programme —</option>';
   if(f&&PROGS[f])PROGS[f].forEach(p=>s.innerHTML+=`<option value="${p}">${p}</option>`);
 }
-
 function toggleSchol(){
   const v=document.getElementById('f_funding_source').value;
   document.getElementById('schol_wrap').style.display=['UMB Scholarship','KNB Scholarship','Home Government Scholarship','NGO/Foundation Scholarship','Other Scholarship'].includes(v)?'':'none';
 }
 function toggleVisit(){document.getElementById('visit_wrap').style.display=document.getElementById('f_visited_indonesia').value==='Yes'?'':'none';}
 function toggleVisa(){document.getElementById('visa_wrap').style.display=document.getElementById('f_visa_rejected').value==='Yes'?'':'none';}
-
-document.getElementById('f_motivation_statement').addEventListener('input',function(){
-  const wc=this.value.trim().split(/\s+/).filter(Boolean).length;
-  const el=document.getElementById('wc');
-  el.textContent=wc+' words';
-  el.style.color=wc<200?'var(--error)':wc>300?'var(--warn)':'var(--success)';
+document.addEventListener('DOMContentLoaded',()=>{
+  const wm=document.getElementById('f_motivation_statement');
+  if(wm)wm.addEventListener('input',function(){
+    const wc=this.value.trim().split(/\s+/).filter(Boolean).length;
+    const el=document.getElementById('wc');
+    if(el){el.textContent=wc+' words';el.style.color=wc<200?'var(--error)':wc>300?'var(--warn)':'var(--success)';}
+  });
 });
 
-// UPLOAD
+// ==================== UPLOAD ====================
 function trigUp(t){uploadTarget=t;const i=document.getElementById('fileInput');i.accept=t==='photo'?'image/*':'application/pdf';i.click();}
 async function handleUpload(e){
   const f=e.target.files[0];if(!f)return;
@@ -838,29 +850,27 @@ async function handleUpload(e){
     if(res.success){
       const box=document.getElementById('du_'+uploadTarget);
       if(box){box.classList.add('uploaded');box.querySelector('.du-i').innerHTML='<i class="ti ti-circle-check"></i>';box.querySelector('.du-n').childNodes[0].textContent=f.name.length>22?f.name.substr(0,20)+'…':f.name;box.querySelector('.du-s').textContent='Uploaded';}
-      toast('Document uploaded successfully.');
+      toast('Document uploaded.');
     } else toast(res.message||'Upload failed.','err');
   };
   r.readAsDataURL(f);e.target.value='';
 }
 
-// COLLECT PART 1
+// ==================== FORM ====================
 function g(id){const el=document.getElementById(id);return el?el.value:'';}
 function collectP1(){
   return{full_name:g('f_full_name'),gender:g('f_gender'),birth_place:g('f_birth_place'),birth_date:g('f_birth_date'),nationality:g('f_nationality'),religion:g('f_religion'),passport_number:g('f_passport_number'),passport_issue_date:g('f_passport_issue_date'),passport_expiry_date:g('f_passport_expiry_date'),home_address:g('f_home_address'),indonesia_address:g('f_indonesia_address'),whatsapp:g('f_whatsapp'),father_name:g('f_father_name'),father_occupation:g('f_father_occupation'),mother_name:g('f_mother_name'),mother_occupation:g('f_mother_occupation'),guardian_name:g('f_guardian_name'),guardian_relation:g('f_guardian_relation'),parent_address:g('f_parent_address'),parent_whatsapp:g('f_parent_whatsapp'),parent_email:g('f_parent_email'),emergency_name:g('f_emergency_name'),emergency_relation:g('f_emergency_relation'),emergency_phone:g('f_emergency_phone'),emergency_address:g('f_emergency_address'),school_name:g('f_school_name'),school_city_country:g('f_school_city_country'),school_year_start:g('f_school_year_start'),school_year_end:g('f_school_year_end'),school_major:g('f_school_major'),school_gpa:g('f_school_gpa'),school_language:g('f_school_language'),native_language:g('f_native_language'),indonesian_level:g('f_indonesian_level'),english_level:g('f_english_level'),lang_cert_score:g('f_lang_cert_score'),other_languages:g('f_other_languages'),faculty_1:g('f_faculty_1'),program_1:g('f_program_1'),faculty_2:g('f_faculty_2'),program_2:g('f_program_2'),funding_source:g('f_funding_source'),scholarship_name:g('f_scholarship_name'),medical_history:g('f_medical_history'),special_needs:g('f_special_needs'),visited_indonesia:g('f_visited_indonesia'),visit_details:g('f_visit_details'),visa_rejected:g('f_visa_rejected'),visa_rejection_reason:g('f_visa_rejection_reason'),heard_from:g('f_heard_from'),motivation_statement:g('f_motivation_statement'),declaration_confirmed:[1,2,3,4].every(i=>document.getElementById('d'+i).checked)};
 }
-
 async function saveDraft(){const r=await api('save_part1',{form_data:collectP1()});toast(r.success?'Progress saved.':r.message,r.success?'ok':'err');}
-
 async function submitP1(){
-  if(![1,2,3,4].every(i=>document.getElementById('d'+i).checked))return toast('Please read and accept all declarations.','err');
+  if(![1,2,3,4].every(i=>document.getElementById('d'+i).checked))return toast('Please accept all declarations.','err');
   const r=await api('submit_part1',{form_data:collectP1()});
   if(r.success){showPanel('part2');setStep(5);buildSPQ();}
   else toast(r.message||'Please complete all required fields.','err');
 }
 
-// SPQ
-const QQ=['I enjoy meeting and getting to know new people.','I feel comfortable starting a conversation with someone I have never met before.','I tend to feel energized after spending time with a group of people.','I prefer to spend most of my time alone rather than with others.','I find it easy to make friends in unfamiliar environments.','I actively participate in group discussions or activities.','I often feel awkward or anxious in social gatherings.','I enjoy being part of a community or student organization.','I am genuinely curious about cultures, traditions, and ways of life different from my own.','I find it exciting to live in a country I have never been to before.','I am willing to adjust my habits and routines when living in a new environment.','I enjoy trying new foods, languages, or customs even when they feel unfamiliar.','I feel uncomfortable when things around me change unexpectedly.','I believe learning from people with different backgrounds makes me grow.','I prefer sticking to familiar environments and routines.','I tend to look for opportunities in new situations rather than focusing on the difficulties.','I am capable of managing my own daily needs without relying heavily on others.','I set clear goals for myself and work consistently toward them.','I manage my time well even without external reminders or supervision.','I often delay important tasks until the last minute.','I take responsibility for my own decisions, including their consequences.','I keep my commitments even when it becomes difficult or inconvenient.','I find it hard to stay motivated when no one is monitoring my progress.','I am able to handle practical day-to-day matters — such as finances, schedules, and paperwork — on my own.','I remain calm and composed when facing difficult or stressful situations.','When things go wrong, I focus on finding solutions rather than dwelling on the problem.','I tend to feel overwhelmed when I encounter setbacks or obstacles.','I recover fairly quickly after experiencing disappointment or failure.','Being far from family and close friends does not significantly affect my ability to function.','I frequently worry about things that may go wrong in the future.','I trust my own ability to handle challenges I have not faced before.','I find it difficult to cope when my expectations are not met.','I have a clear reason for pursuing higher education, and I am committed to it.','I am willing to make significant sacrifices — including comfort and convenience — to achieve my academic goals.','I actively seek out additional knowledge beyond what is required in class.','I often lose interest in a goal before I finish pursuing it.','I believe that consistent effort over time is more important than natural talent.','When I face academic difficulty, I look for ways to improve rather than giving up.','I have a long-term vision of what I want to achieve after completing my degree.','I study or work hard mainly because others expect me to, not because I truly want to.','Before accepting information as true, I look for evidence or reasoning that supports it.','I enjoy discussing topics from multiple perspectives, even when they challenge my own beliefs.','I tend to accept what I am told by authority figures without questioning it.','When making decisions, I consider both the short-term and long-term consequences.','I notice inconsistencies or logical gaps in arguments, whether in conversation or written material.','I find it uncomfortable when my existing beliefs are challenged by new information.','I ask questions not just to get answers, but to better understand how something works.','I am willing to change my opinion when presented with strong enough evidence.'];
+// ==================== SPQ ====================
+const QQ=['I enjoy meeting and getting to know new people.','I feel comfortable starting a conversation with someone I have never met before.','I tend to feel energized after spending time with a group of people.','I prefer to spend most of my time alone rather than with others.','I find it easy to make friends in unfamiliar environments.','I actively participate in group discussions or activities.','I often feel awkward or anxious in social gatherings.','I enjoy being part of a community or student organization.','I am genuinely curious about cultures, traditions, and ways of life different from my own.','I find it exciting to live in a country I have never been to before.','I am willing to adjust my habits and routines when living in a new environment.','I enjoy trying new foods, languages, or customs even when they feel unfamiliar.','I feel uncomfortable when things around me change unexpectedly.','I believe learning from people with different backgrounds makes me grow.','I prefer sticking to familiar environments and routines.','I tend to look for opportunities in new situations rather than focusing on the difficulties.','I am capable of managing my own daily needs without relying heavily on others.','I set clear goals for myself and work consistently toward them.','I manage my time well even without external reminders or supervision.','I often delay important tasks until the last minute.','I take responsibility for my own decisions, including their consequences.','I keep my commitments even when it becomes difficult or inconvenient.','I find it hard to stay motivated when no one is monitoring my progress.','I am able to handle practical day-to-day matters on my own.','I remain calm and composed when facing difficult or stressful situations.','When things go wrong, I focus on finding solutions rather than dwelling on the problem.','I tend to feel overwhelmed when I encounter setbacks or obstacles.','I recover fairly quickly after experiencing disappointment or failure.','Being far from family and close friends does not significantly affect my ability to function.','I frequently worry about things that may go wrong in the future.','I trust my own ability to handle challenges I have not faced before.','I find it difficult to cope when my expectations are not met.','I have a clear reason for pursuing higher education, and I am committed to it.','I am willing to make significant sacrifices to achieve my academic goals.','I actively seek out additional knowledge beyond what is required in class.','I often lose interest in a goal before I finish pursuing it.','I believe that consistent effort over time is more important than natural talent.','When I face academic difficulty, I look for ways to improve rather than giving up.','I have a long-term vision of what I want to achieve after completing my degree.','I study mainly because others expect me to, not because I truly want to.','Before accepting information as true, I look for evidence that supports it.','I enjoy discussing topics from multiple perspectives, even when they challenge my beliefs.','I tend to accept what I am told by authority figures without questioning it.','When making decisions, I consider both short-term and long-term consequences.','I notice inconsistencies or logical gaps in arguments.','I find it uncomfortable when my existing beliefs are challenged by new information.','I ask questions not just to get answers, but to understand how something works.','I am willing to change my opinion when presented with strong enough evidence.'];
 
 function buildSPQ(){
   const c=document.getElementById('spqWrap');c.innerHTML='';
@@ -870,12 +880,10 @@ function buildSPQ(){
     c.appendChild(d);
   });
 }
-
 function updSPQ(){
   const ans=[...document.querySelectorAll('.spq-item')].filter(el=>el.querySelector('input:checked')).length;
   document.getElementById('pb2').style.width=(ans/48*100)+'%';
 }
-
 async function submitP2(){
   const answers={};
   for(let i=1;i<=48;i++){
@@ -887,21 +895,106 @@ async function submitP2(){
   if(r.success){document.getElementById('succId').textContent=S.applicant_id;showPanel('success');setStep(6);toast('Application submitted!');}
   else toast(r.message||'Submission failed.','err');
 }
+function goBack(){showPanel('dashboard');loadApplicantDashboard();}
 
-function goBack(){showPanel('part1');setStep(3);}
-function goToStatus(){
-  document.getElementById('stName').textContent=S.full_name||'—';
-  document.getElementById('stId').textContent=S.applicant_id||'—';
-  showPanel('status');setStep(6);
+const STAGE_ORDER=['SUBMITTED','ADMIN_REVIEW','PASSED_ADMIN','INTERVIEW_DONE','ACCEPTED'];
+const STAGE_META={
+  SUBMITTED:{label:'Application Submitted',desc:'Your application and documents have been received.',icon:'ti-circle-check'},
+  ADMIN_REVIEW:{label:'Administrative Review',desc:'Our team is reviewing your application and documents.',icon:'ti-file-check'},
+  PASSED_ADMIN:{label:'Interview Stage',desc:'You have passed administrative review and will be invited for an interview.',icon:'ti-users'},
+  FAILED_ADMIN:{label:'Administrative Review',desc:'Please contact the admissions office regarding your application.',icon:'ti-alert-circle'},
+  INTERVIEW_DONE:{label:'Interview Completed',desc:'Awaiting final decision from Head of Global Engagement.',icon:'ti-microphone'},
+  ACCEPTED:{label:'Final Decision',desc:'Congratulations — you have been admitted to UMB.',icon:'ti-trophy'},
+  WAITLISTED:{label:'Final Decision',desc:'You have been placed on the waiting list.',icon:'ti-clock'},
+  REJECTED:{label:'Final Decision',desc:'Your application was not successful this time.',icon:'ti-x'}
+};
+
+async function goToDashboard(){
+  showPanel('dashboard');
+  await loadApplicantDashboard();
+  setStep(6);
+}
+function goToStatus(){goToDashboard();} // legacy alias
+
+async function loadApplicantDashboard(){
+  document.getElementById('dashName').textContent=S.full_name||'—';
+  document.getElementById('dashId').textContent=S.applicant_id||'—';
+  const r=await api('get_my_application',{});
+  if(!r.success){toast(r.message||'Failed to load your application.','err');return;}
+
+  const a=r.applicant;
+  const stage=r.stage||'SUBMITTED';
+
+  // ---- CTA ----
+  const cta=document.getElementById('dashCTA');
+  if(!r.part1_complete){
+    cta.innerHTML='<div class="nb" style="background:var(--warn-bg);border-color:#f0dfa0"><i class="ti ti-forms" style="color:var(--warn)"></i><p style="color:var(--warn)"><strong>Your application is incomplete.</strong> Please complete Part 1 (Personal Data) to continue.</p></div>'
+      +'<button class="btn-nav" style="width:100%;justify-content:center;margin-top:6px" onclick="showPanel(\'part1\');setStep(3)"><i class="ti ti-arrow-right"></i> Continue Personal Data</button>';
+  } else if(!r.part2_complete){
+    cta.innerHTML='<div class="nb" style="background:var(--warn-bg);border-color:#f0dfa0"><i class="ti ti-checklist" style="color:var(--warn)"></i><p style="color:var(--warn)"><strong>One step left.</strong> Please complete the Student Profile Questionnaire to submit your application.</p></div>'
+      +'<button class="btn-nav" style="width:100%;justify-content:center;margin-top:6px" onclick="showPanel(\'part2\');setStep(5);buildSPQ()"><i class="ti ti-arrow-right"></i> Continue Questionnaire</button>';
+  } else {
+    cta.innerHTML='<div class="nb" style="background:var(--success-bg);border-color:#a8d5b5"><i class="ti ti-circle-check" style="color:var(--success)"></i><p style="color:var(--success)"><strong>Application complete.</strong> Your application is being processed. Check back here for updates.</p></div>';
+  }
+
+  // ---- TRACKER ----
+  const failed=(stage==='FAILED_ADMIN'||stage==='REJECTED');
+  const idx=STAGE_ORDER.indexOf(stage);
+  const trackerStages=['SUBMITTED','ADMIN_REVIEW','PASSED_ADMIN','INTERVIEW_DONE','ACCEPTED'];
+  let trackerHtml='';
+  trackerStages.forEach((s,i)=>{
+    const meta=STAGE_META[s];
+    let dotClass='pending',icon=meta.icon;
+    if(failed && i<=1){dotClass='done';if(stage==='FAILED_ADMIN'&&i===1){dotClass='';icon='ti-x';}}
+    else if(i<idx)dotClass='done';
+    else if(i===idx)dotClass='active';
+    let label=meta.label,desc=meta.desc;
+    if(stage==='FAILED_ADMIN'&&s==='ADMIN_REVIEW'){label='Administrative Review';desc=STAGE_META.FAILED_ADMIN.desc;dotClass='';icon='ti-alert-circle';}
+    if(stage==='WAITLISTED'&&s==='ACCEPTED'){label='Final Decision';desc=STAGE_META.WAITLISTED.desc;icon='ti-clock';dotClass='active';}
+    if(stage==='REJECTED'&&s==='ACCEPTED'){label='Final Decision';desc=STAGE_META.REJECTED.desc;icon='ti-x';dotClass='';}
+    const opacity=(dotClass==='pending')?'opacity:.45':'';
+    trackerHtml+='<div class="st-item"><div class="st-dot '+dotClass+'"><i class="ti '+icon+'"></i></div><div class="st-content"><h4 style="'+opacity+'">'+esc(label)+'</h4><p style="'+opacity+'">'+esc(desc)+'</p></div></div>';
+  });
+  document.getElementById('dashTracker').innerHTML=trackerHtml;
+
+  // ---- DOCUMENTS ----
+  const docTypes=[
+    {key:'passport_scan',label:'Passport Scan',req:true},
+    {key:'photo',label:'Passport Photo',req:true},
+    {key:'diploma',label:'High School Diploma',req:true},
+    {key:'transcript',label:'School Transcript',req:true},
+    {key:'recommendation_letter',label:'Recommendation Letter',req:true},
+    {key:'financial_support',label:'Financial Support Letter',req:true},
+    {key:'health_certificate',label:'Health Certificate',req:true},
+    {key:'no_work_declaration',label:'No-Work Declaration',req:true},
+    {key:'lang_certificate',label:'Language Certificate',req:false},
+    {key:'scholarship_letter',label:'Scholarship Letter',req:false},
+  ];
+  const uploaded=(r.documents||[]).reduce((m,d)=>{m[d.doc_type]=d;return m;},{});
+  document.getElementById('dashDocs').innerHTML=docTypes.map(dt=>{
+    const doc=uploaded[dt.key];
+    const cls=doc?'du uploaded':'du';
+    const icon=doc?'ti-circle-check':'ti-file-upload';
+    const sub=doc?'Uploaded':(dt.req?'Required — not uploaded':'Optional — not uploaded');
+    return '<div class="'+cls+'" onclick="trigUp(\''+dt.key+'\')"><div class="du-i"><i class="ti '+icon+'"></i></div><div><div class="du-n">'+esc(dt.label)+(dt.req?'<span class="doc-req">*</span>':'<span class="doc-opt">Optional</span>')+'</div><div class="du-s">'+sub+'</div></div></div>';
+  }).join('');
 }
 
-// API
+function doAppLogout(){
+  S={token:'',email:'',applicant_id:'',full_name:''};
+  localStorage.removeItem('umb_token');
+  showPanel('login');switchTab('login');
+  document.getElementById('authTabs').style.display='';
+  setStep(1);
+  toast('Signed out.');
+}
+
+// ==================== API ====================
 async function api(action,data,opts){
   try{
     const body={action,data};
     const tok=(opts&&opts.token)?opts.token:S.token;
     if(tok)body.token=tok;
-    // GAS requires text/plain to avoid CORS preflight block
     const r=await fetch(GAS_URL,{
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
@@ -909,14 +1002,14 @@ async function api(action,data,opts){
     });
     const txt=await r.text();
     try{return JSON.parse(txt);}
-    catch{console.error('Non-JSON response:',txt);return{success:false,message:'Server returned invalid response. Check GAS deployment.'};}
+    catch{console.error('Non-JSON:',txt);return{success:false,message:'Server error. Please try again.'};}
   }catch(e){
     console.error('API error:',e);
-    return{success:false,message:'Connection error. Please check your internet connection and try again.'};
+    return{success:false,message:'Connection error. Please try again.'};
   }
 }
 
-// TOAST
+// ==================== TOAST ====================
 function toast(msg,type){
   const el=document.getElementById('toast');
   document.getElementById('toastMsg').textContent=msg;
@@ -926,102 +1019,69 @@ function toast(msg,type){
   setTimeout(()=>el.classList.remove('show'),3500);
 }
 
-// INIT
+// ==================== ADMIN (STAFF) ====================
+let ADM={token:'',role:'',name:'',applicants:[],intQueue:[],headList:[],progConfig:{},scholConfig:[]};
 
-// Hash-based admin entry point
-function checkAdminHash(){
-  if(location.hash==='#staff'){
-    document.getElementById('admin-shell').style.display='block';
-    document.body.style.overflow='hidden';
-  }
-}
-window.addEventListener('hashchange', checkAdminHash);
-window.addEventListener('DOMContentLoaded', function(){
-  buildNats(); buildYears(); loadEligibleProgs();
-  showSec('instructions'); setStep(1);
-  if(S.token){
-    showSec('apply');
-    document.getElementById('authTabs').style.display='none';
-    showPanel('part1'); setStep(3);
-  }
-  checkAdminHash();
-  // Restore staff session if exists
+// Entry point: called once on page load to restore an existing staff session.
+// Staff no longer have a separate login form or #staff URL — they sign in
+// through the same "Sign In" form as applicants; unified_login on the
+// backend determines the role and doLogin() routes them here.
+function restoreStaffSession(){
   const st=localStorage.getItem('umb_staff_token');
   const sr=localStorage.getItem('umb_staff_role');
   const sn=localStorage.getItem('umb_staff_name');
-  if(st&&sr&&sn&&location.hash==='#staff'){
-    ADM.token=st; ADM.role=sr; ADM.name=sn;
+  if(st&&sr&&sn){
+    ADM.token=st;ADM.role=sr;ADM.name=sn;
+    document.getElementById('admin-shell').style.display='block';
+    document.body.style.overflow='hidden';
     showAdminDashboard(sr,sn);
+    return true;
   }
-});
-
-
-// ===================== ADMIN JS =====================
-let ADM = {token:'',role:'',name:'',applicants:[],intQueue:[],headList:[],progConfig:{},scholConfig:[]};
-
-async function doStaffLogin(){
-  const email=document.getElementById('aml_email').value.trim();
-  const pass=document.getElementById('aml_pass').value;
-  if(!email||!pass) return toast('Please enter email and password.','err');
-  const r=await api('login_staff',{email,password:pass});
-  if(r.success){
-    ADM.token=r.token; ADM.role=r.role; ADM.name=r.full_name;
-    localStorage.setItem('umb_staff_token',r.token);
-    localStorage.setItem('umb_staff_role',r.role);
-    localStorage.setItem('umb_staff_name',r.full_name);
-    showAdminDashboard(r.role,r.full_name);
-  } else toast(r.message||'Login failed. Check email and password.','err');
+  return false;
 }
 
 function showAdminDashboard(role,name){
-  document.getElementById('adm-login').style.display='none';
+  const loginBox=document.getElementById('adm-login');
+  if(loginBox)loginBox.style.display='none';
   document.getElementById('adm-dashboard').style.display='block';
   document.getElementById('adm-user-name').textContent=name;
-  const roleLabels={admin:'Admin',interviewer:'Interviewer',head_uge:'Head UGE'};
-  document.getElementById('adm-role-badge').textContent=roleLabels[role]||role;
+  const labels={admin:'Admin',interviewer:'Interviewer',head_uge:'Head UGE'};
+  document.getElementById('adm-role-badge').textContent=labels[role]||role;
   document.getElementById('nav-admin-group').style.display=role==='admin'?'':'none';
   document.getElementById('nav-int-group').style.display=role==='interviewer'?'':'none';
   document.getElementById('nav-head-group').style.display=role==='head_uge'?'':'none';
   if(role==='admin'){showAPage('dashboard');loadDashboard();}
   else if(role==='interviewer'){showAPage('int-queue');loadIntQueue();}
-  else if(role==='head_uge'){showAPage('head-summary');loadHeadSummary();}
+  else showAPage('head-summary');
 }
 
 function doStaffLogout(){
   ADM={token:'',role:'',name:'',applicants:[],intQueue:[],headList:[],progConfig:{},scholConfig:[]};
-  localStorage.removeItem('umb_staff_token');
-  localStorage.removeItem('umb_staff_role');
-  localStorage.removeItem('umb_staff_name');
-  document.getElementById('adm-login').style.display='flex';
-  document.getElementById('adm-dashboard').style.display='none';
-}
-
-function closeAdmin(){
+  ['umb_staff_token','umb_staff_role','umb_staff_name'].forEach(k=>localStorage.removeItem(k));
   document.getElementById('admin-shell').style.display='none';
   document.body.style.overflow='';
-  location.hash='';
+  showSec('instructions');
+  showPanel('login');switchTab('login');
+  document.getElementById('authTabs').style.display='';
+  setStep(1);
+  toast('Signed out.');
 }
 
 function showAPage(id){
   document.querySelectorAll('.apage').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.anav').forEach(n=>n.classList.remove('active'));
-  const pg=document.getElementById('apage-'+id);
-  const nav=document.getElementById('nav-'+id);
-  if(pg)pg.classList.add('active');
-  if(nav)nav.classList.add('active');
+  const pg=document.getElementById('apage-'+id);const nav=document.getElementById('nav-'+id);
+  if(pg)pg.classList.add('active');if(nav)nav.classList.add('active');
   if(id==='applicants')loadApplicants();
-  if(id==='programs')loadProgConfig();
-  if(id==='scholarships')loadScholConfig();
-  if(id==='int-queue')loadIntQueue();
-  if(id==='head-summary')loadHeadSummary();
-  if(id==='head-decisions')loadHeadDecisions();
+  else if(id==='programs')loadProgConfig();
+  else if(id==='scholarships')loadScholConfig();
+  else if(id==='int-queue')loadIntQueue();
+  else if(id==='head-summary')loadHeadSummary();
+  else if(id==='head-decisions')loadHeadDecisions();
 }
 
-async function apiAdm(action,data){
-  return await api(action,data,{token:ADM.token});
-}
+async function apiAdm(action,data){return await api(action,data,{token:ADM.token});}
 
-// DASHBOARD
 async function loadDashboard(){
   const r=await apiAdm('admin_get_dashboard_summary',{});
   if(r.success&&r.data){
@@ -1033,408 +1093,224 @@ async function loadDashboard(){
   const r2=await apiAdm('admin_get_all_applicants',{});
   if(r2.success&&r2.data){
     ADM.applicants=r2.data;
-    const recent=r2.data.slice(0,10);
+    const recent=r2.data.slice(0,8);
     document.getElementById('tbody-recent').innerHTML=recent.length
       ?recent.map(a=>`<tr><td><strong>${esc(a.full_name||'—')}</strong></td><td>${esc(a.nationality||'—')}</td><td style="font-size:12px">${esc(a.program_1||'—')}</td><td>${stageBadge(a.stage)}</td><td style="color:var(--text-light);font-size:12px">${fmtDate(a.created_at)}</td></tr>`).join('')
       :'<tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:20px">No applications yet.</td></tr>';
   }
 }
 
-// ALL APPLICANTS
 async function loadApplicants(){
   document.getElementById('tbody-applicants').innerHTML='<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-light)">Loading...</td></tr>';
   const r=await apiAdm('admin_get_all_applicants',{});
-  if(r.success&&r.data){ADM.applicants=r.data;renderApplicantsTable(r.data);}
+  if(r.success&&r.data){ADM.applicants=r.data;renderApplTable(r.data);}
   else document.getElementById('tbody-applicants').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--error);padding:20px">Failed to load.</td></tr>';
 }
 
-function renderApplicantsTable(data){
-  const tbody=document.getElementById('tbody-applicants');
-  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:20px">No applications found.</td></tr>';return;}
-  tbody.innerHTML=data.map(a=>`<tr>
+function renderApplTable(data){
+  const tb=document.getElementById('tbody-applicants');
+  if(!data||!data.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:20px">No applications found.</td></tr>';return;}
+  tb.innerHTML=data.map(a=>`<tr>
     <td><input type="checkbox" class="appl-chk" value="${esc(a.applicant_id)}" onchange="updateBulkBtns()"></td>
     <td><strong>${esc(a.full_name||'—')}</strong><br><span style="font-size:11px;color:var(--text-light)">${esc(a.email||'')}</span></td>
-    <td>${esc(a.email||'—')}</td>
-    <td>${esc(a.nationality||'—')}</td>
-    <td style="font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.program_1||'—')}</td>
+    <td>${esc(a.email||'—')}</td><td>${esc(a.nationality||'—')}</td>
+    <td style="font-size:12px">${esc(a.program_1||'—')}</td>
     <td>${stageBadge(a.stage)}</td>
     <td style="color:var(--text-light);font-size:12px">${fmtDate(a.created_at)}</td>
-    <td><button class="bsm outline" onclick="openApplicantModal('${esc(a.applicant_id)}')"><i class="ti ti-eye"></i> View</button></td>
+    <td><button class="bsm outline" onclick="openApplModal('${esc(a.applicant_id)}')"><i class="ti ti-eye"></i> View</button></td>
   </tr>`).join('');
 }
 
 function filterApplicants(){
   const q=document.getElementById('appl-search').value.toLowerCase();
   const st=document.getElementById('appl-filter').value;
-  const filtered=ADM.applicants.filter(a=>{
-    const mq=!q||(a.full_name||'').toLowerCase().includes(q)||(a.email||'').toLowerCase().includes(q);
-    const ms=!st||a.stage===st;
-    return mq&&ms;
-  });
-  renderApplicantsTable(filtered);
+  renderApplTable(ADM.applicants.filter(a=>(!q||(a.full_name||'').toLowerCase().includes(q)||(a.email||'').toLowerCase().includes(q))&&(!st||a.stage===st)));
 }
-
 function toggleAllChk(cb){document.querySelectorAll('.appl-chk').forEach(c=>c.checked=cb.checked);updateBulkBtns();}
-function updateBulkBtns(){
-  const n=[...document.querySelectorAll('.appl-chk:checked')].length;
-  document.getElementById('btn-bulk-pass').style.display=n?'':'none';
-  document.getElementById('btn-bulk-fail').style.display=n?'':'none';
-}
-
+function updateBulkBtns(){const n=[...document.querySelectorAll('.appl-chk:checked')].length;document.getElementById('btn-bulk-pass').style.display=n?'':'none';document.getElementById('btn-bulk-fail').style.display=n?'':'none';}
 async function bulkAction(decision){
   const ids=[...document.querySelectorAll('.appl-chk:checked')].map(c=>c.value);
-  if(!ids.length)return;
-  if(!confirm('Set '+ids.length+' applicant(s) to '+decision+'?'))return;
-  let ok=0;
-  for(const id of ids){const r=await apiAdm('admin_set_review_decision',{applicant_id:id,decision,notes:'Bulk action'});if(r.success)ok++;}
-  toast(ok+'/'+ids.length+' updated.',ok===ids.length?'ok':'err');
-  loadApplicants();
+  if(!ids.length)return;if(!confirm('Set '+ids.length+' applicant(s) to '+decision+'?'))return;
+  let ok=0;for(const id of ids){const r=await apiAdm('admin_set_review_decision',{applicant_id:id,decision,notes:'Bulk'});if(r.success)ok++;}
+  toast(ok+'/'+ids.length+' updated.');loadApplicants();
 }
-
 function exportCSV(mode){
   const data=mode==='head'?ADM.headList:ADM.applicants;
-  if(!data||!data.length)return toast('No data to export.','err');
-  const cols=mode==='head'
-    ?['applicant_id','full_name','email','nationality','program_1','stage','interview_total','interview_recommendation']
-    :['applicant_id','full_name','email','nationality','program_1','funding_source','stage','created_at'];
-  const csv=[cols.join(','),...data.map(a=>cols.map(c=>'"'+(a[c]||'').toString().replace(/"/g,'""')+'"').join(','))].join('
-');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='umb_applicants_'+Date.now()+'.csv';a.click();
+  if(!data||!data.length)return toast('No data.','err');
+  const cols=mode==='head'?['applicant_id','full_name','email','nationality','program_1','stage','interview_total','interview_recommendation']:['applicant_id','full_name','email','nationality','program_1','funding_source','stage','created_at'];
+  const csv=[cols.join(','),...data.map(a=>cols.map(c=>'"'+(a[c]||'').toString().replace(/"/g,'""')+'"').join(','))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='umb_'+Date.now()+'.csv';a.click();
 }
 
-// APPLICANT DETAIL MODAL
-async function openApplicantModal(id){
+async function openApplModal(id){
   const r=await apiAdm('admin_get_applicant_detail',{applicant_id:id});
   if(!r.success)return toast(r.message||'Failed.','err');
   const a=r.data;
   document.getElementById('md-name').textContent=a.full_name||'—';
   document.getElementById('md-id').innerHTML='ID: '+id+' &nbsp;'+stageBadge(a.stage);
-  let html='<div style="margin-bottom:14px">'
-    +dr('Email',a.email)+dr('Nationality',a.nationality)+dr('Date of Birth',a.birth_date)
-    +dr('WhatsApp',a.whatsapp)+dr('Religion',a.religion)+'</div>'
-    +'<div style="margin-bottom:14px">'
-    +dr('1st Choice',(a.faculty_1||'')+(a.program_1?' — '+a.program_1:''))
-    +dr('2nd Choice',(a.faculty_2&&a.program_2)?a.faculty_2+' — '+a.program_2:'None')
-    +dr('Funding',a.funding_source)+dr('Scholarship',a.scholarship_name||'—')+'</div>'
-    +'<div style="margin-bottom:14px">'
-    +dr('School',a.school_name)+dr('GPA',a.school_gpa)+'</div>';
-  if(a.gemini_recommendation){
-    html+='<div class="gem-box"><h4>AI Analysis</h4><p><strong>Recommendation:</strong> '+esc(a.gemini_recommendation)+'</p>'+(a.gemini_summary?'<p style="margin-top:5px;font-size:13px;opacity:.85">'+esc(a.gemini_summary)+'</p>':'')+'</div>';
-  }
-  if(a.psych_total){
-    html+='<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">SPQ Scores</div>'
-      +sbar('Extraversion & Social',a.psych_s1,40)+sbar('Openness & Cross-Cultural',a.psych_s2,40)
-      +sbar('Conscientiousness',a.psych_s3,40)+sbar('Emotional Stability',a.psych_s4,40)
-      +sbar('Academic Motivation',a.psych_s5,40)+sbar('Critical Thinking',a.psych_s6,40)
-      +'<div style="font-size:13px;font-weight:700;color:var(--navy);margin-top:6px">Total: '+(a.psych_total||0)+' / 240</div></div>';
-  }
-  if(a.motivation_statement){
-    html+='<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Motivation</div><p style="font-size:13px;color:var(--text-mid);line-height:1.7;background:var(--cream);padding:12px;border-radius:8px">'+esc(a.motivation_statement)+'</p></div>';
-  }
+  let html='<div style="margin-bottom:14px">'+dr('Email',a.email)+dr('Nationality',a.nationality)+dr('DOB',a.birth_date)+dr('WhatsApp',a.whatsapp)+'</div>'
+    +'<div style="margin-bottom:14px">'+dr('1st Choice',(a.faculty_1||'')+(a.program_1?' — '+a.program_1:''))+dr('Funding',a.funding_source)+'</div>'
+    +'<div style="margin-bottom:14px">'+dr('School',a.school_name)+dr('GPA',a.school_gpa)+'</div>';
+  if(a.gemini_recommendation)html+='<div class="gem-box"><h4>AI Analysis</h4><p>Recommendation: '+esc(a.gemini_recommendation)+'</p>'+(a.gemini_summary?'<p style="margin-top:5px;font-size:13px;opacity:.85">'+esc(a.gemini_summary)+'</p>':'')+'</div>';
+  if(a.psych_total)html+='<div style="margin-bottom:14px">'+sbar('Extraversion',a.psych_s1,40)+sbar('Openness',a.psych_s2,40)+sbar('Conscientiousness',a.psych_s3,40)+sbar('Emotional Stability',a.psych_s4,40)+sbar('Academic Motivation',a.psych_s5,40)+sbar('Critical Thinking',a.psych_s6,40)+'<div style="font-size:13px;font-weight:700;color:var(--navy);margin-top:6px">Total: '+(a.psych_total||0)+'/240</div></div>';
+  if(a.motivation_statement)html+='<div style="margin-bottom:14px"><p style="font-size:13px;color:var(--text-mid);line-height:1.7;background:var(--cream);padding:12px;border-radius:8px">'+esc(a.motivation_statement)+'</p></div>';
   if(['SUBMITTED','ADMIN_REVIEW','PASSED_ADMIN'].includes(a.stage)){
     html+='<div style="display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">'
-      +'<textarea id="review-notes" placeholder="Notes (optional)..." style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:13px;resize:none;height:56px;outline:none"></textarea>'
+      +'<textarea id="review-notes" placeholder="Notes..." style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:13px;resize:none;height:56px;outline:none"></textarea>'
       +'<div style="display:flex;flex-direction:column;gap:6px">'
-      +'<button class="bsm green" onclick="setReviewDecision(''+id+'','PASSED_ADMIN')"><i class="ti ti-check"></i> Pass</button>'
-      +'<button class="bsm red" onclick="setReviewDecision(''+id+'','FAILED_ADMIN')"><i class="ti ti-x"></i> Fail</button>'
-      +'</div></div>';
+      +'<button class="bsm green" onclick="setRevDecision(''+id+'','PASSED_ADMIN')"><i class="ti ti-check"></i> Pass</button>'
+      +'<button class="bsm red" onclick="setRevDecision(''+id+'','FAILED_ADMIN')"><i class="ti ti-x"></i> Fail</button></div></div>';
   }
-  if(a.drive_folder_url){html+='<div style="margin-top:10px"><a href="'+a.drive_folder_url+'" target="_blank" class="bsm outline"><i class="ti ti-folder"></i> View Documents</a></div>';}
-  document.getElementById('md-body').innerHTML=html;
-  openModal('modal-applicant');
+  if(a.drive_folder_url)html+='<div style="margin-top:10px"><a href="'+a.drive_folder_url+'" target="_blank" class="bsm outline"><i class="ti ti-folder"></i> View Documents</a></div>';
+  document.getElementById('md-body').innerHTML=html;openModal('modal-applicant');
 }
-
-async function setReviewDecision(id,decision){
+async function setRevDecision(id,decision){
   const notes=document.getElementById('review-notes')?document.getElementById('review-notes').value:'';
   const r=await apiAdm('admin_set_review_decision',{applicant_id:id,decision,notes});
-  if(r.success){toast('Decision saved.');closeModal('modal-applicant');loadApplicants();}
-  else toast(r.message||'Failed.','err');
+  if(r.success){toast('Saved.');closeModal('modal-applicant');loadApplicants();}else toast(r.message,'err');
 }
 
-// PROGRAMME ELIGIBILITY
 async function loadProgConfig(){
   const r=await apiAdm('admin_get_programs_config',{});
   if(r.success&&r.data){ADM.progConfig=r.data;renderEligGrid();}
   else document.getElementById('elig-container').innerHTML='<p style="color:var(--text-light)">Failed to load.</p>';
 }
-
 function renderEligGrid(){
   const data=ADM.progConfig;
-  if(!data||!Object.keys(data).length){document.getElementById('elig-container').innerHTML='<p style="color:var(--text-light)">No programme data.</p>';return;}
+  if(!data||!Object.keys(data).length){document.getElementById('elig-container').innerHTML='<p>No data.</p>';return;}
   let total=0,open=0,html='';
   for(const [fac,progs] of Object.entries(data)){
-    const allOn=progs.every(p=>p.is_eligible);
-    html+='<div class="elig-fac"><div class="elig-fac-hdr"><span>'+esc(fac)+'</span>'
-      +'<label class="toggle"><input type="checkbox" '+(allOn?'checked':'')+' onchange="setFacElig(''+esc(fac)+'',this.checked)"><span class="tslider"></span></label></div>';
-    for(const p of progs){
-      total++;if(p.is_eligible)open++;
-      html+='<div class="elig-prog"><span>'+esc(p.program)+'</span>'
-        +'<label class="toggle"><input type="checkbox" '+(p.is_eligible?'checked':'')+' onchange="setProgElig(''+esc(fac)+'',''+esc(p.program)+'',this.checked)"><span class="tslider"></span></label></div>';
-    }
+    html+='<div class="elig-fac"><div class="elig-fac-hdr"><span>'+esc(fac)+'</span><label class="toggle"><input type="checkbox" '+(progs.every(p=>p.is_eligible)?'checked':'')+' onchange="setFacElig(''+esc(fac)+'',this.checked)"><span class="tslider"></span></label></div>';
+    for(const p of progs){total++;if(p.is_eligible)open++;html+='<div class="elig-prog"><span>'+esc(p.program)+'</span><label class="toggle"><input type="checkbox" '+(p.is_eligible?'checked':'')+' onchange="setProgElig(''+esc(fac)+'',''+esc(p.program)+'',this.checked)"><span class="tslider"></span></label></div>';}
     html+='</div>';
   }
   document.getElementById('elig-container').innerHTML=html;
   document.getElementById('prog-counter').textContent=open+' of '+total+' programmes open';
 }
+async function setProgElig(fac,prog,val){await apiAdm('admin_set_program_eligibility',{faculty:fac,program:prog,is_eligible:val});if(ADM.progConfig[fac]){const p=ADM.progConfig[fac].find(x=>x.program===prog);if(p)p.is_eligible=val;}renderEligGrid();}
+async function setFacElig(fac,val){await apiAdm('admin_set_faculty_eligibility',{faculty:fac,is_eligible:val});if(ADM.progConfig[fac])ADM.progConfig[fac].forEach(p=>p.is_eligible=val);renderEligGrid();}
+async function setAllElig(val){for(const fac of Object.keys(ADM.progConfig)){await apiAdm('admin_set_faculty_eligibility',{faculty:fac,is_eligible:val});ADM.progConfig[fac].forEach(p=>p.is_eligible=val);}renderEligGrid();toast(val?'All enabled.':'All disabled.');}
 
-async function setProgElig(fac,prog,val){
-  await apiAdm('admin_set_program_eligibility',{faculty:fac,program:prog,is_eligible:val});
-  if(ADM.progConfig[fac]){const p=ADM.progConfig[fac].find(x=>x.program===prog);if(p)p.is_eligible=val;}
-  renderEligGrid();
-}
-
-async function setFacElig(fac,val){
-  await apiAdm('admin_set_faculty_eligibility',{faculty:fac,is_eligible:val});
-  if(ADM.progConfig[fac])ADM.progConfig[fac].forEach(p=>p.is_eligible=val);
-  renderEligGrid();
-}
-
-async function setAllElig(val){
-  for(const fac of Object.keys(ADM.progConfig)){
-    await apiAdm('admin_set_faculty_eligibility',{faculty:fac,is_eligible:val});
-    ADM.progConfig[fac].forEach(p=>p.is_eligible=val);
-  }
-  renderEligGrid();
-  toast(val?'All programmes enabled.':'All programmes disabled.');
-}
-
-// SCHOLARSHIPS
 async function loadScholConfig(){
   const r=await apiAdm('admin_get_scholarships',{});
   if(r.success&&r.data){ADM.scholConfig=r.data;renderScholList();}
-  else document.getElementById('schol-container').innerHTML='<p style="color:var(--text-light)">No data.</p>';
+  else document.getElementById('schol-container').innerHTML='<p style="color:var(--text-light)">No data. (Requires scholarship functions in Admin.gs)</p>';
 }
-
 function renderScholList(){
   const c=document.getElementById('schol-container');
   if(!ADM.scholConfig.length){c.innerHTML='<p style="color:var(--text-light)">No scholarships.</p>';return;}
-  c.innerHTML=ADM.scholConfig.map(s=>'<div class="schol-row"><span class="sr-name">'+esc(s.label)+'</span>'
-    +'<div style="display:flex;align-items:center;gap:10px">'
-    +'<label class="toggle"><input type="checkbox" '+(s.is_active?'checked':'')+' onchange="setScholStatus(''+esc(s.id)+'',this.checked)"><span class="tslider"></span></label>'
-    +'<button class="bsm red" onclick="deleteSchol(''+esc(s.id)+'')"><i class="ti ti-trash"></i></button>'
-    +'</div></div>').join('');
+  c.innerHTML=ADM.scholConfig.map(s=>'<div class="schol-row"><span>'+esc(s.label)+'</span><div style="display:flex;align-items:center;gap:10px"><label class="toggle"><input type="checkbox" '+(s.is_active?'checked':'')+' onchange="setScholStatus(''+esc(s.id)+'',this.checked)"><span class="tslider"></span></label><button class="bsm red" onclick="deleteSchol(''+esc(s.id)+'')"><i class="ti ti-trash"></i></button></div></div>').join('');
 }
-
 async function setScholStatus(id,val){await apiAdm('admin_set_scholarship_status',{id,is_active:val});}
-async function addScholarship(){
-  const name=document.getElementById('new-schol-name').value.trim();
-  if(!name)return toast('Enter a name.','err');
-  const r=await apiAdm('admin_add_scholarship',{label:name});
-  if(r.success){document.getElementById('new-schol-name').value='';loadScholConfig();toast('Added.');}
-  else toast(r.message||'Failed.','err');
-}
-async function deleteSchol(id){
-  if(!confirm('Delete this?'))return;
-  const r=await apiAdm('admin_delete_scholarship',{id});
-  if(r.success){loadScholConfig();toast('Deleted.');}else toast(r.message||'Failed.','err');
-}
+async function addScholarship(){const name=document.getElementById('new-schol-name').value.trim();if(!name)return toast('Enter a name.','err');const r=await apiAdm('admin_add_scholarship',{label:name});if(r.success){document.getElementById('new-schol-name').value='';loadScholConfig();toast('Added.');}else toast(r.message,'err');}
+async function deleteSchol(id){if(!confirm('Delete?'))return;const r=await apiAdm('admin_delete_scholarship',{id});if(r.success){loadScholConfig();toast('Deleted.');}else toast(r.message,'err');}
 
-// ADD STAFF
 async function addStaff(){
   const name=document.getElementById('ns_name').value.trim();
   const email=document.getElementById('ns_email').value.trim();
   const role=document.getElementById('ns_role').value;
   const pass=document.getElementById('ns_pass').value;
-  if(!name||!email||!pass)return toast('Please fill all fields.','err');
-  if(pass.length<8)return toast('Password min 8 characters.','err');
+  if(!name||!email||!pass)return toast('Fill all fields.','err');
+  if(pass.length<8)return toast('Password min 8 chars.','err');
   const r=await apiAdm('admin_add_staff',{email,full_name:name,role,temp_password:pass});
   if(r.success){toast('Staff account created.');document.getElementById('ns_name').value='';document.getElementById('ns_email').value='';document.getElementById('ns_pass').value='';}
-  else toast(r.message||'Failed.','err');
+  else toast(r.message,'err');
 }
 
-// INTERVIEWER
 async function loadIntQueue(){
   document.getElementById('tbody-int-queue').innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-light)">Loading...</td></tr>';
   const r=await apiAdm('interviewer_get_queue',{});
   if(r.success&&r.data){
     ADM.intQueue=r.data;
     if(!r.data.length){document.getElementById('tbody-int-queue').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-light);padding:20px">No applicants in queue.</td></tr>';return;}
-    document.getElementById('tbody-int-queue').innerHTML=r.data.map(a=>'<tr>'
-      +'<td><strong>'+esc(a.full_name||'—')+'</strong></td>'
-      +'<td>'+esc(a.nationality||'—')+'</td>'
-      +'<td style="font-size:12px">'+esc(a.program_1||'—')+'</td>'
-      +'<td>'+(a.psych_total?a.psych_total+'/240':'—')+'</td>'
-      +'<td>'+gemBadge(a.gemini_recommendation)+'</td>'
-      +'<td><button class="bsm navy" onclick="openInterviewModal(''+esc(a.applicant_id)+'')"><i class="ti ti-microphone"></i> Interview</button></td>'
-      +'</tr>').join('');
-  } else document.getElementById('tbody-int-queue').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--error);padding:20px">Failed to load.</td></tr>';
+    document.getElementById('tbody-int-queue').innerHTML=r.data.map(a=>'<tr><td><strong>'+esc(a.full_name||'—')+'</strong></td><td>'+esc(a.nationality||'—')+'</td><td style="font-size:12px">'+esc(a.program_1||'—')+'</td><td>'+(a.psych_total?a.psych_total+'/240':'—')+'</td><td>'+gemBadge(a.gemini_recommendation)+'</td><td><button class="bsm navy" onclick="openIntModal(''+esc(a.applicant_id)+'')"><i class="ti ti-microphone"></i> Interview</button></td></tr>').join('');
+  } else document.getElementById('tbody-int-queue').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--error);padding:20px">Failed.</td></tr>';
 }
-
-async function openInterviewModal(id){
+async function openIntModal(id){
   const r=await apiAdm('interviewer_get_profile',{applicant_id:id});
-  if(!r.success)return toast(r.message||'Failed.','err');
+  if(!r.success)return toast(r.message,'err');
   const a=r.data;
   document.getElementById('int-md-name').textContent=a.full_name||'—';
   document.getElementById('int-md-sub').innerHTML='Programme: <strong>'+esc(a.program_1||'—')+'</strong> · '+esc(a.nationality||'—');
-  const sections=[
-    {key:'personal_background',label:'Personal Background'},
-    {key:'motivation',label:'Motivation & Academic Purpose'},
-    {key:'adaptability',label:'Adaptability & Cross-Cultural'},
-    {key:'independence',label:'Independence & Self-Management'},
-    {key:'emotional_resilience',label:'Emotional Resilience'},
-    {key:'social_skills',label:'Social Skills'},
-    {key:'critical_thinking',label:'Critical Thinking'},
-    {key:'overall',label:'Overall Impression'},
-  ];
-  let html='<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:14px">'
-    +(a.psych_total?'<strong>SPQ:</strong> '+a.psych_total+'/240 &nbsp;·&nbsp; ':'')
-    +'<strong>AI:</strong> '+gemBadge(a.gemini_recommendation)+'</div>'
-    +'<p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Score each section 1 (Poor) – 5 (Excellent)</p>';
-  for(const sec of sections){
-    html+='<div class="int-sec"><h4>'+esc(sec.label)+'</h4>'
-      +'<div style="display:flex;gap:6px;margin-bottom:8px">'
-      +[1,2,3,4,5].map(v=>'<div class="sopt" data-sec="'+sec.key+'" data-val="'+v+'" onclick="selectScore(''+sec.key+'','+v+')">'+v+'</div>').join('')
-      +'</div></div>';
-  }
-  html+='<div class="ff" style="margin-top:4px"><label>Interview Notes</label>'
-    +'<textarea id="int-notes" rows="4" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none;resize:vertical"></textarea></div>'
-    +'<div class="ff"><label>Overall Recommendation</label>'
-    +'<select id="int-rec" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none">'
-    +'<option value="">— Select —</option><option value="RECOMMENDED">Recommended</option>'
-    +'<option value="WAITLIST">Waitlist</option><option value="REJECTED">Not Recommended</option></select></div>'
-    +'<button class="btn-nav" style="width:100%;justify-content:center;margin-top:4px" onclick="submitInterview(''+id+'')"><i class="ti ti-send"></i> Submit Result</button>';
-  document.getElementById('int-md-body').innerHTML=html;
-  openModal('modal-interview');
+  const secs=[{key:'personal_background',label:'Personal Background'},{key:'motivation',label:'Motivation & Purpose'},{key:'adaptability',label:'Adaptability'},{key:'independence',label:'Independence'},{key:'emotional_resilience',label:'Emotional Resilience'},{key:'social_skills',label:'Social Skills'},{key:'critical_thinking',label:'Critical Thinking'},{key:'overall',label:'Overall Impression'}];
+  let html='<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:14px">'+(a.psych_total?'<strong>SPQ:</strong> '+a.psych_total+'/240 &nbsp;·&nbsp; ':'')+'<strong>AI:</strong> '+gemBadge(a.gemini_recommendation)+'</div><p style="font-size:12px;color:var(--text-mid);margin-bottom:12px">Score each section 1 (Poor) – 5 (Excellent)</p>';
+  for(const sec of secs){html+='<div class="int-sec"><h4>'+esc(sec.label)+'</h4><div style="display:flex;gap:6px;margin-bottom:6px">'+[1,2,3,4,5].map(v=>'<div class="sopt" data-sec="'+sec.key+'" data-val="'+v+'" onclick="selScore(''+sec.key+'','+v+')">'+v+'</div>').join('')+'</div></div>';}
+  html+='<div class="ff" style="margin-top:4px"><label>Notes</label><textarea id="int-notes" rows="3" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none;resize:vertical"></textarea></div>'
+    +'<div class="ff"><label>Recommendation</label><select id="int-rec" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none"><option value="">— Select —</option><option value="RECOMMENDED">Recommended</option><option value="WAITLIST">Waitlist</option><option value="REJECTED">Not Recommended</option></select></div>'
+    +'<button class="btn-nav" style="width:100%;justify-content:center" onclick="submitInt(''+id+'')"><i class="ti ti-send"></i> Submit Result</button>';
+  document.getElementById('int-md-body').innerHTML=html;openModal('modal-interview');
 }
-
-function selectScore(sec,val){
-  document.querySelectorAll('.sopt[data-sec="'+sec+'"]').forEach(el=>el.classList.toggle('sel',parseInt(el.dataset.val)===val));
-}
-
-async function submitInterview(id){
+function selScore(sec,val){document.querySelectorAll('.sopt[data-sec="'+sec+'"]').forEach(el=>el.classList.toggle('sel',parseInt(el.dataset.val)===val));}
+async function submitInt(id){
   const secs=['personal_background','motivation','adaptability','independence','emotional_resilience','social_skills','critical_thinking','overall'];
   const scores={};
-  for(const sec of secs){
-    const sel=document.querySelector('.sopt[data-sec="'+sec+'"].sel');
-    if(!sel)return toast('Please score all 8 sections.','err');
-    scores[sec]=parseInt(sel.dataset.val);
-  }
-  const notes=document.getElementById('int-notes').value;
-  const rec=document.getElementById('int-rec').value;
-  if(!rec)return toast('Please select a recommendation.','err');
-  const r=await apiAdm('interviewer_submit_result',{applicant_id:id,interview_data:{scores,notes,recommendation:rec}});
-  if(r.success){toast('Result submitted.');closeModal('modal-interview');loadIntQueue();}
-  else toast(r.message||'Failed.','err');
+  for(const sec of secs){const sel=document.querySelector('.sopt[data-sec="'+sec+'"].sel');if(!sel)return toast('Score all 8 sections.','err');scores[sec]=parseInt(sel.dataset.val);}
+  const rec=document.getElementById('int-rec').value;if(!rec)return toast('Select a recommendation.','err');
+  const r=await apiAdm('interviewer_submit_result',{applicant_id:id,interview_data:{scores,notes:document.getElementById('int-notes').value,recommendation:rec}});
+  if(r.success){toast('Submitted.');closeModal('modal-interview');loadIntQueue();}else toast(r.message,'err');
 }
 
-// HEAD UGE
 async function loadHeadSummary(){
   const r=await apiAdm('head_get_summary',{});
-  if(r.success&&r.data){
-    document.getElementById('hst-total').textContent=r.data.total||0;
-    document.getElementById('hst-acc').textContent=r.data.accepted||0;
-    document.getElementById('hst-wait').textContent=r.data.waitlisted||0;
-    document.getElementById('hst-rej').textContent=r.data.rejected||0;
-  }
+  if(r.success&&r.data){document.getElementById('hst-total').textContent=r.data.total||0;document.getElementById('hst-acc').textContent=r.data.accepted||0;document.getElementById('hst-wait').textContent=r.data.waitlisted||0;document.getElementById('hst-rej').textContent=r.data.rejected||0;}
 }
-
 async function loadHeadDecisions(){
   document.getElementById('tbody-head-decisions').innerHTML='<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-light)">Loading...</td></tr>';
   const r=await apiAdm('head_get_all_completed',{});
   if(r.success&&r.data){ADM.headList=r.data;renderHeadTable(r.data);}
 }
-
 function renderHeadTable(data){
-  const tbody=document.getElementById('tbody-head-decisions');
-  if(!data||!data.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:20px">No completed interviews yet.</td></tr>';return;}
-  tbody.innerHTML=data.map(a=>'<tr>'
-    +'<td><input type="checkbox" class="head-chk" value="'+esc(a.applicant_id)+'" onchange="updateHeadBulkBtns()"></td>'
-    +'<td><strong>'+esc(a.full_name||'—')+'</strong></td>'
-    +'<td>'+esc(a.nationality||'—')+'</td>'
-    +'<td style="font-size:12px">'+esc(a.program_1||'—')+'</td>'
-    +'<td>'+(a.interview_total?a.interview_total+'/40':'—')+'</td>'
-    +'<td>'+gemBadge(a.interview_recommendation)+'</td>'
-    +'<td>'+stageBadge(a.stage)+'</td>'
-    +'<td><button class="bsm outline" onclick="openHeadModal(''+esc(a.applicant_id)+'')"><i class="ti ti-gavel"></i> Decide</button></td>'
-    +'</tr>').join('');
+  const tb=document.getElementById('tbody-head-decisions');
+  if(!data||!data.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:20px">No completed interviews yet.</td></tr>';return;}
+  tb.innerHTML=data.map(a=>'<tr><td><input type="checkbox" class="head-chk" value="'+esc(a.applicant_id)+'" onchange="updHeadBulk()"></td><td><strong>'+esc(a.full_name||'—')+'</strong></td><td>'+esc(a.nationality||'—')+'</td><td style="font-size:12px">'+esc(a.program_1||'—')+'</td><td>'+(a.interview_total?a.interview_total+'/40':'—')+'</td><td>'+gemBadge(a.interview_recommendation)+'</td><td>'+stageBadge(a.stage)+'</td><td><button class="bsm outline" onclick="openHeadModal(''+esc(a.applicant_id)+'')"><i class="ti ti-gavel"></i> Decide</button></td></tr>').join('');
 }
-
-function toggleHeadChk(cb){document.querySelectorAll('.head-chk').forEach(c=>c.checked=cb.checked);updateHeadBulkBtns();}
-function updateHeadBulkBtns(){
-  const n=[...document.querySelectorAll('.head-chk:checked')].length;
-  document.getElementById('btn-head-acc').style.display=n?'':'none';
-  document.getElementById('btn-head-rej').style.display=n?'':'none';
-}
-
-async function bulkHeadDecision(decision){
-  const ids=[...document.querySelectorAll('.head-chk:checked')].map(c=>c.value);
-  if(!ids.length)return;
-  if(!confirm('Set '+ids.length+' applicant(s) to '+decision+'?'))return;
-  const r=await apiAdm('head_bulk_decisions',{decisions:ids.map(id=>({applicant_id:id,decision,notes:'Bulk'}))});
-  if(r.success){toast('Done.');loadHeadDecisions();loadHeadSummary();}
-  else toast(r.message||'Failed.','err');
-}
-
+function toggleHeadChk(cb){document.querySelectorAll('.head-chk').forEach(c=>c.checked=cb.checked);updHeadBulk();}
+function updHeadBulk(){const n=[...document.querySelectorAll('.head-chk:checked')].length;document.getElementById('btn-head-acc').style.display=n?'':'none';document.getElementById('btn-head-rej').style.display=n?'':'none';}
+async function bulkHeadDecision(decision){const ids=[...document.querySelectorAll('.head-chk:checked')].map(c=>c.value);if(!ids.length)return;if(!confirm('Set '+ids.length+' to '+decision+'?'))return;const r=await apiAdm('head_bulk_decisions',{decisions:ids.map(id=>({applicant_id:id,decision,notes:'Bulk'}))});if(r.success){toast('Done.');loadHeadDecisions();}else toast(r.message,'err');}
 async function openHeadModal(id){
-  const r=await apiAdm('head_get_profile',{applicant_id:id});
-  if(!r.success)return toast(r.message||'Failed.','err');
+  const r=await apiAdm('head_get_profile',{applicant_id:id});if(!r.success)return toast(r.message,'err');
   const a=r.data;
   document.getElementById('hd-md-name').textContent=a.full_name||'—';
-  document.getElementById('hd-md-sub').textContent='Programme: '+(a.program_1||'—')+' · '+(a.nationality||'—');
-  let html='<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px">'
-    +dr('SPQ Total',(a.psych_total||'—')+'/240')
-    +dr('AI Recommendation',gemBadge(a.gemini_recommendation))
-    +dr('Interview Score',(a.interview_total||'—')+'/40')
-    +dr('Interview Recommendation',gemBadge(a.interview_recommendation))+'</div>'
-    +(a.interview_notes?'<div style="background:var(--cream);border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--text-mid)"><strong>Interviewer Notes:</strong><br>'+esc(a.interview_notes)+'</div>':'')
-    +'<div class="ff"><label>Head UGE Notes</label><textarea id="hd-notes" rows="3" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none;resize:none"></textarea></div>'
-    +'<div style="display:flex;gap:8px;margin-top:8px">'
-    +'<button class="bsm green" style="flex:1;justify-content:center" onclick="setHeadDecision(''+id+'','ACCEPTED')"><i class="ti ti-circle-check"></i> Accept</button>'
-    +'<button class="bsm outline" style="flex:1;justify-content:center" onclick="setHeadDecision(''+id+'','WAITLISTED')"><i class="ti ti-clock"></i> Waitlist</button>'
-    +'<button class="bsm red" style="flex:1;justify-content:center" onclick="setHeadDecision(''+id+'','REJECTED')"><i class="ti ti-x"></i> Reject</button>'
-    +'</div>';
-  document.getElementById('hd-md-body').innerHTML=html;
+  document.getElementById('hd-md-sub').textContent=(a.program_1||'—')+' · '+(a.nationality||'—');
+  document.getElementById('hd-md-body').innerHTML='<div style="background:var(--cream);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px">'+dr('SPQ',(a.psych_total||'—')+'/240')+dr('AI Rec.',gemBadge(a.gemini_recommendation))+dr('Interview',(a.interview_total||'—')+'/40')+dr('Int. Rec.',gemBadge(a.interview_recommendation))+'</div>'
+    +(a.interview_notes?'<div style="background:var(--cream);border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--text-mid)"><strong>Notes:</strong><br>'+esc(a.interview_notes)+'</div>':'')
+    +'<div class="ff"><label>Notes</label><textarea id="hd-notes" rows="2" style="width:100%;padding:9px;border:1.5px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;outline:none;resize:none"></textarea></div>'
+    +'<div style="display:flex;gap:8px;margin-top:8px"><button class="bsm green" style="flex:1;justify-content:center" onclick="setHeadDec(''+id+'','ACCEPTED')"><i class="ti ti-circle-check"></i> Accept</button><button class="bsm outline" style="flex:1;justify-content:center" onclick="setHeadDec(''+id+'','WAITLISTED')"><i class="ti ti-clock"></i> Waitlist</button><button class="bsm red" style="flex:1;justify-content:center" onclick="setHeadDec(''+id+'','REJECTED')"><i class="ti ti-x"></i> Reject</button></div>';
   openModal('modal-head-decision');
 }
-
-async function setHeadDecision(id,decision){
-  const notes=document.getElementById('hd-notes')?document.getElementById('hd-notes').value:'';
-  const r=await apiAdm('head_set_decision',{applicant_id:id,decision,notes});
-  if(r.success){toast('Decision saved.');closeModal('modal-head-decision');loadHeadDecisions();loadHeadSummary();}
-  else toast(r.message||'Failed.','err');
-}
+async function setHeadDec(id,decision){const r=await apiAdm('head_set_decision',{applicant_id:id,decision,notes:document.getElementById('hd-notes')?document.getElementById('hd-notes').value:''});if(r.success){toast('Saved.');closeModal('modal-head-decision');loadHeadDecisions();loadHeadSummary();}else toast(r.message,'err');}
 
 // HELPERS
-function dr(label,val){return '<div class="dr"><span class="dr-l">'+label+'</span><span class="dr-v">'+(val||'—')+'</span></div>';}
-function sbar(label,val,max){const pct=Math.round((val||0)/max*100);return '<div class="sbar-item"><div class="sbi-top"><span>'+label+'</span><span>'+(val||0)+'/'+max+'</span></div><div class="sbar-track"><div class="sbar-fill" style="width:'+pct+'%"></div></div></div>';}
+function dr(l,v){return'<div class="dr"><span class="dr-l">'+l+'</span><span class="dr-v">'+(v||'—')+'</span></div>';}
+function sbar(l,v,m){const p=Math.round((v||0)/m*100);return'<div class="sbar-item"><div class="sbi-top"><span>'+l+'</span><span>'+(v||0)+'/'+m+'</span></div><div class="sbar-track"><div class="sbar-fill" style="width:'+p+'%"></div></div></div>';}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fmtDate(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch{return d;}}
-function stageBadge(s){
-  const m={SUBMITTED:'ab-sub',ADMIN_REVIEW:'ab-rev',PASSED_ADMIN:'ab-pass',FAILED_ADMIN:'ab-fail',INTERVIEW_DONE:'ab-int',ACCEPTED:'ab-acc',WAITLISTED:'ab-wait',REJECTED:'ab-rej'};
-  const l={SUBMITTED:'Submitted',ADMIN_REVIEW:'In Review',PASSED_ADMIN:'Passed Review',FAILED_ADMIN:'Failed Review',INTERVIEW_DONE:'Interview Done',ACCEPTED:'Accepted',WAITLISTED:'Waitlisted',REJECTED:'Rejected'};
-  return '<span class="abadge '+(m[s]||'ab-sub')+'">'+(l[s]||s||'—')+'</span>';
-}
-function gemBadge(r){
-  if(!r)return '<span style="color:var(--text-light);font-size:12px">—</span>';
-  const m={HIGHLY_RECOMMENDED:'ab-acc',RECOMMENDED:'ab-pass',REVIEW_NEEDED:'ab-wait',WAITLIST:'ab-wait',REJECTED:'ab-rej'};
-  return '<span class="abadge '+(m[r]||'ab-sub')+'" style="font-size:11px">'+r.replace(/_/g,' ')+'</span>';
-}
+function stageBadge(s){const m={SUBMITTED:'ab-sub',ADMIN_REVIEW:'ab-rev',PASSED_ADMIN:'ab-pass',FAILED_ADMIN:'ab-fail',INTERVIEW_DONE:'ab-int',ACCEPTED:'ab-acc',WAITLISTED:'ab-wait',REJECTED:'ab-rej'};const l={SUBMITTED:'Submitted',ADMIN_REVIEW:'In Review',PASSED_ADMIN:'Passed Review',FAILED_ADMIN:'Failed Review',INTERVIEW_DONE:'Interview Done',ACCEPTED:'Accepted',WAITLISTED:'Waitlisted',REJECTED:'Rejected'};return'<span class="abadge '+(m[s]||'ab-sub')+'">'+(l[s]||s||'—')+'</span>';}
+function gemBadge(r){if(!r)return'<span style="color:var(--text-light);font-size:12px">—</span>';const m={HIGHLY_RECOMMENDED:'ab-acc',RECOMMENDED:'ab-pass',REVIEW_NEEDED:'ab-wait',WAITLIST:'ab-wait',REJECTED:'ab-rej'};return'<span class="abadge '+(m[r]||'ab-sub')+'" style="font-size:11px">'+r.replace(/_/g,' ')+'</span>';}
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
 function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='hidden';}
 
+// ==================== INIT ====================
+window.addEventListener('DOMContentLoaded',()=>{
+  buildNats();buildYears();loadEligibleProgs();
+  showSec('instructions');setStep(1);
+
+  // Restore an existing session, if any. Staff takes priority check first
+  // (cheap localStorage read), then applicant.
+  const staffRestored=restoreStaffSession();
+  if(!staffRestored && S.token){
+    showSec('apply');
+    document.getElementById('authTabs').style.display='none';
+    goToDashboard();
+  }
+});
 </script>
 
 <!-- ===================== ADMIN SHELL ===================== -->
+<!-- Staff sign in through the same landing-page "Sign In" form as applicants.
+     unified_login on the backend detects the role; doLogin() shows this
+     shell directly (no separate staff login screen, no #staff URL). -->
 <div id="admin-shell">
-
-  <!-- LOGIN -->
-  <div id="adm-login" class="adm-login-wrap">
-    <div class="adm-login-box">
-      <h2>Staff Login</h2>
-      <p>UMB Global Engagement — Internal Access</p>
-      <div class="ff"><label>Email <span class="req">*</span></label><input type="email" id="aml_email" placeholder="admin@ge.umb.ac.id"></div>
-      <div class="ff"><label>Password <span class="req">*</span></label><input type="password" id="aml_pass"></div>
-      <div class="ff"><label>Role</label>
-        <select id="aml_role">
-          <option value="admin">Admin</option>
-          <option value="interviewer">Interviewer</option>
-          <option value="head">Head UGE</option>
-        </select>
-      </div>
-      <button class="btn-nav" style="width:100%;justify-content:center;margin-top:4px" onclick="doStaffLogin()">Sign In <i class="ti ti-arrow-right"></i></button>
-      <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-light)"><a href="#" onclick="closeAdmin()" style="color:var(--navy-light)">← Back to applicant portal</a></p>
-    </div>
-  </div>
 
   <!-- DASHBOARD -->
   <div id="adm-dashboard" style="display:none">
@@ -1665,6 +1541,7 @@ function closeModal(id){document.getElementById(id).classList.remove('open');doc
     <div id="hd-md-body"></div>
   </div>
 </div>
+
 
 </body>
 </html>
