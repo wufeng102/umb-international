@@ -1035,13 +1035,13 @@ function showAdminDashboard(role,name){
   if(loginBox)loginBox.style.display='none';
   document.getElementById('adm-dashboard').style.display='block';
   document.getElementById('adm-user-name').textContent=name;
-  const labels={admin:'Admin',interviewer:'Interviewer',head_uge:'Head UGE'};
+  const labels={ADMIN:'Admin',INTERVIEWER:'Interviewer',HEAD_UGE:'Head UGE'};
   document.getElementById('adm-role-badge').textContent=labels[role]||role;
-  document.getElementById('nav-admin-group').style.display=role==='admin'?'':'none';
-  document.getElementById('nav-int-group').style.display=role==='interviewer'?'':'none';
-  document.getElementById('nav-head-group').style.display=role==='head_uge'?'':'none';
-  if(role==='admin'){showAPage('dashboard');loadDashboard();}
-  else if(role==='interviewer'){showAPage('int-queue');loadIntQueue();}
+  document.getElementById('nav-admin-group').style.display=role==='ADMIN'?'':'none';
+  document.getElementById('nav-int-group').style.display=role==='INTERVIEWER'?'':'none';
+  document.getElementById('nav-head-group').style.display=role==='HEAD_UGE'?'':'none';
+  if(role==='ADMIN'){showAPage('dashboard');loadDashboard();}
+  else if(role==='INTERVIEWER'){showAPage('int-queue');loadIntQueue();}
   else showAPage('head-summary');
 }
 
@@ -1437,9 +1437,9 @@ window.addEventListener('DOMContentLoaded',()=>{
             <div class="ff"><label>Email <span class="req">*</span></label><input type="email" id="ns_email"></div>
             <div class="ff"><label>Role <span class="req">*</span></label>
               <select id="ns_role">
-                <option value="interviewer">Interviewer</option>
-                <option value="head_uge">Head UGE</option>
-                <option value="admin">Admin</option>
+                <option value="INTERVIEWER">Interviewer</option>
+                <option value="HEAD_UGE">Head UGE</option>
+                <option value="ADMIN">Admin</option>
               </select>
             </div>
             <div class="ff"><label>Temporary Password <span class="req">*</span></label><input type="password" id="ns_pass" placeholder="Min 8 characters"></div>
