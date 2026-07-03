@@ -903,6 +903,20 @@ async function submitP2(){
 }
 function goBack(){showPanel('dashboard');loadApplicantDashboard();}
 
+const DOC_LABELS=[
+  {key:'passport_scan',label:'Passport Scan',req:true},
+  {key:'photo',label:'Passport Photo',req:true},
+  {key:'diploma',label:'High School Diploma',req:true},
+  {key:'transcript',label:'School Transcript',req:true},
+  {key:'recommendation_letter',label:'Recommendation Letter',req:true},
+  {key:'financial_support',label:'Financial Support Letter',req:true},
+  {key:'health_certificate',label:'Health Certificate',req:true},
+  {key:'no_work_declaration',label:'No-Work Declaration',req:true},
+  {key:'lang_certificate',label:'Language Certificate',req:false},
+  {key:'scholarship_letter',label:'Scholarship Letter',req:false},
+];
+function docLabel(key){const d=DOC_LABELS.find(x=>x.key===key);return d?d.label:key;}
+
 const STAGE_ORDER=['SUBMITTED','ADMIN_REVIEW','PASSED_ADMIN','INTERVIEW_DONE','ACCEPTED'];
 const STAGE_META={
   SUBMITTED:{label:'Application Submitted',desc:'Your application and documents have been received.',icon:'ti-circle-check'},
@@ -929,6 +943,11 @@ async function loadApplicantDashboard(){
   if(!r.success){toast(r.message||'Failed to load your application.','err');return;}
 
   const stage=r.stage||'SUBMITTED';
+  // Head UGE has decided but Admin has not deployed yet — do not reveal
+  // the pending decision on the applicant's own dashboard. Treat it as
+  // "still in progress, right after interview" for tracker purposes only.
+  const isPendingDeploy=/_PENDING$/.test(stage);
+  const trackerStage=isPendingDeploy?'INTERVIEW_DONE':stage;
 
   const cta=document.getElementById('dashCTA');
   if(!r.part1_complete){
@@ -941,8 +960,8 @@ async function loadApplicantDashboard(){
     cta.innerHTML=`<div class="nb" style="background:var(--success-bg);border-color:#a8d5b5"><i class="ti ti-circle-check" style="color:var(--success)"></i><p style="color:var(--success)"><strong>Application complete.</strong> Your application is being processed. Check back here for updates.</p></div>`;
   }
 
-  const failed=(stage==='FAILED_ADMIN'||stage==='REJECTED');
-  const idx=STAGE_ORDER.indexOf(stage);
+  const failed=(trackerStage==='FAILED_ADMIN'||trackerStage==='REJECTED');
+  const idx=STAGE_ORDER.indexOf(trackerStage);
   const trackerStages=['SUBMITTED','ADMIN_REVIEW','PASSED_ADMIN','INTERVIEW_DONE','ACCEPTED'];
   let trackerHtml='';
   trackerStages.forEach((s,i)=>{
@@ -960,20 +979,8 @@ async function loadApplicantDashboard(){
   });
   document.getElementById('dashTracker').innerHTML=trackerHtml;
 
-  const docTypes=[
-    {key:'passport_scan',label:'Passport Scan',req:true},
-    {key:'photo',label:'Passport Photo',req:true},
-    {key:'diploma',label:'High School Diploma',req:true},
-    {key:'transcript',label:'School Transcript',req:true},
-    {key:'recommendation_letter',label:'Recommendation Letter',req:true},
-    {key:'financial_support',label:'Financial Support Letter',req:true},
-    {key:'health_certificate',label:'Health Certificate',req:true},
-    {key:'no_work_declaration',label:'No-Work Declaration',req:true},
-    {key:'lang_certificate',label:'Language Certificate',req:false},
-    {key:'scholarship_letter',label:'Scholarship Letter',req:false},
-  ];
   const uploaded=(r.documents||[]).reduce((m,d)=>{m[d.doc_type]=d;return m;},{});
-  document.getElementById('dashDocs').innerHTML=docTypes.map(dt=>{
+  document.getElementById('dashDocs').innerHTML=DOC_LABELS.map(dt=>{
     const doc=uploaded[dt.key];
     const cls=doc?'du uploaded':'du';
     const icon=doc?'ti-circle-check':'ti-file-upload';
@@ -1071,6 +1078,7 @@ function showAPage(id){
   const pg=document.getElementById('apage-'+id);const nav=document.getElementById('nav-'+id);
   if(pg)pg.classList.add('active');if(nav)nav.classList.add('active');
   if(id==='applicants')loadApplicants();
+  else if(id==='pending-decisions')loadPendingDecisions();
   else if(id==='programs')loadProgConfig();
   else if(id==='scholarships')loadScholConfig();
   else if(id==='int-queue')loadIntQueue();
@@ -1103,6 +1111,34 @@ async function loadApplicants(){
   const r=await apiAdm('admin_get_all_applicants',{});
   if(r.success&&r.data){ADM.applicants=r.data;renderApplTable(r.data);}
   else document.getElementById('tbody-applicants').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--error);padding:20px">Failed to load.</td></tr>';
+}
+
+async function loadPendingDecisions(){
+  document.getElementById('tbody-pending-decisions').innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-light)">Loading...</td></tr>';
+  const r=await apiAdm('admin_get_all_applicants',{});
+  if(!r.success||!r.data){document.getElementById('tbody-pending-decisions').innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--error);padding:20px">Failed to load.</td></tr>';return;}
+  ADM.applicants=r.data;
+  renderPendingTable(r.data.filter(a=>/_PENDING$/.test(a.stage)));
+}
+function renderPendingTable(data){
+  const tb=document.getElementById('tbody-pending-decisions');
+  if(!data.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:20px">Nothing pending. All decisions have been deployed.</td></tr>';return;}
+  tb.innerHTML=data.map(a=>{
+    const decision=a.stage.replace('_PENDING','');
+    return `<tr>
+      <td><strong>${esc(a.full_name||'—')}</strong></td>
+      <td>${esc(a.nationality||'—')}</td>
+      <td style="font-size:12px">${esc(a.program_1||'—')}</td>
+      <td>${stageBadge(decision)}</td>
+      <td><button class="bsm navy" onclick="deployDecision('${esc(a.applicant_id)}')"><i class="ti ti-send"></i> Deploy &amp; Notify</button></td>
+    </tr>`;
+  }).join('');
+}
+async function deployDecision(id){
+  if(!confirm('Send the final decision email to this applicant now? This cannot be undone.'))return;
+  const r=await apiAdm('admin_deploy_final_decision',{applicant_id:id});
+  if(r.success){toast('Decision deployed. Applicant notified by email.');loadPendingDecisions();}
+  else toast(r.message||'Failed.','err');
 }
 
 function renderApplTable(data){
@@ -1143,15 +1179,26 @@ function exportCSV(mode){
 async function openApplModal(id){
   const r=await apiAdm('admin_get_applicant_detail',{applicant_id:id});
   if(!r.success)return toast(r.message||'Failed.','err');
-  const a=r.data;
+  const a=r.applicant;
+  const gemini=r.gemini_result;
+  const psych=r.psych_test;
+  const docs=r.documents||[];
   document.getElementById('md-name').textContent=a.full_name||'—';
   document.getElementById('md-id').innerHTML='ID: '+id+' &nbsp;'+stageBadge(a.stage);
   let html=`<div style="margin-bottom:14px">${dr('Email',a.email)}${dr('Nationality',a.nationality)}${dr('DOB',a.birth_date)}${dr('WhatsApp',a.whatsapp)}</div>
     <div style="margin-bottom:14px">${dr('1st Choice',(a.faculty_1||'')+(a.program_1?' — '+a.program_1:''))}${dr('Funding',a.funding_source)}</div>
     <div style="margin-bottom:14px">${dr('School',a.school_name)}${dr('GPA',a.school_gpa)}</div>`;
-  if(a.gemini_recommendation)html+=`<div class="gem-box"><h4>AI Analysis</h4><p>Recommendation: ${esc(a.gemini_recommendation)}</p>${a.gemini_summary?'<p style="margin-top:5px;font-size:13px;opacity:.85">'+esc(a.gemini_summary)+'</p>':''}</div>`;
-  if(a.psych_total)html+=`<div style="margin-bottom:14px">${sbar('Extraversion',a.psych_s1,40)}${sbar('Openness',a.psych_s2,40)}${sbar('Conscientiousness',a.psych_s3,40)}${sbar('Emotional Stability',a.psych_s4,40)}${sbar('Academic Motivation',a.psych_s5,40)}${sbar('Critical Thinking',a.psych_s6,40)}<div style="font-size:13px;font-weight:700;color:var(--navy);margin-top:6px">Total: ${a.psych_total||0}/240</div></div>`;
+  if(gemini)html+=`<div class="gem-box"><h4>AI Analysis</h4><p>Recommendation: ${esc(gemini.recommendation_label||gemini.recommendation||'—')}</p>${gemini.profile_narrative?'<p style="margin-top:5px;font-size:13px;opacity:.85">'+esc(gemini.profile_narrative)+'</p>':''}</div>`;
+  if(psych)html+=`<div style="margin-bottom:14px">${sbar('Extraversion',psych.score_extraversion,40)}${sbar('Openness',psych.score_openness,40)}${sbar('Conscientiousness',psych.score_conscientiousness,40)}${sbar('Emotional Stability',psych.score_stability,40)}${sbar('Academic Motivation',psych.score_motivation,40)}${sbar('Critical Thinking',psych.score_critical_thinking,40)}<div style="font-size:13px;font-weight:700;color:var(--navy);margin-top:6px">Total: ${psych.total_score||0}/240</div></div>`;
   if(a.motivation_statement)html+=`<div style="margin-bottom:14px"><p style="font-size:13px;color:var(--text-mid);line-height:1.7;background:var(--cream);padding:12px;border-radius:8px">${esc(a.motivation_statement)}</p></div>`;
+
+  html+='<div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px">Documents</div>';
+  if(docs.length){
+    html+='<div class="doc-grid">'+docs.map(d=>`<a class="du uploaded" href="${d.drive_url}" target="_blank" style="text-decoration:none"><div class="du-i"><i class="ti ti-file-check"></i></div><div><div class="du-n">${esc(docLabel(d.doc_type))}</div><div class="du-s">${esc(d.file_name||'View file')}</div></div></a>`).join('')+'</div>';
+  } else {
+    html+='<p style="font-size:13px;color:var(--text-light)">No documents uploaded yet.</p>';
+  }
+
   if(['SUBMITTED','ADMIN_REVIEW','PASSED_ADMIN'].includes(a.stage)){
     html+=`<div style="display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
       <textarea id="review-notes" placeholder="Notes..." style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:13px;resize:none;height:56px;outline:none"></textarea>
@@ -1159,7 +1206,7 @@ async function openApplModal(id){
       <button class="bsm green" onclick="setRevDecision('${id}','PASSED_ADMIN')"><i class="ti ti-check"></i> Pass</button>
       <button class="bsm red" onclick="setRevDecision('${id}','FAILED_ADMIN')"><i class="ti ti-x"></i> Fail</button></div></div>`;
   }
-  if(a.drive_folder_url)html+=`<div style="margin-top:10px"><a href="${a.drive_folder_url}" target="_blank" class="bsm outline"><i class="ti ti-folder"></i> View Documents</a></div>`;
+  if(r.folder_url)html+=`<div style="margin-top:10px"><a href="${r.folder_url}" target="_blank" class="bsm outline"><i class="ti ti-folder"></i> Open Full Drive Folder</a></div>`;
   document.getElementById('md-body').innerHTML=html;openModal('modal-applicant');
 }
 async function setRevDecision(id,decision){
@@ -1288,7 +1335,7 @@ function dr(l,v){return'<div class="dr"><span class="dr-l">'+l+'</span><span cla
 function sbar(l,v,m){const p=Math.round((v||0)/m*100);return'<div class="sbar-item"><div class="sbi-top"><span>'+l+'</span><span>'+(v||0)+'/'+m+'</span></div><div class="sbar-track"><div class="sbar-fill" style="width:'+p+'%"></div></div></div>';}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fmtDate(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch{return d;}}
-function stageBadge(s){const m={SUBMITTED:'ab-sub',ADMIN_REVIEW:'ab-rev',PASSED_ADMIN:'ab-pass',FAILED_ADMIN:'ab-fail',INTERVIEW_DONE:'ab-int',ACCEPTED:'ab-acc',WAITLISTED:'ab-wait',REJECTED:'ab-rej'};const l={SUBMITTED:'Submitted',ADMIN_REVIEW:'In Review',PASSED_ADMIN:'Passed Review',FAILED_ADMIN:'Failed Review',INTERVIEW_DONE:'Interview Done',ACCEPTED:'Accepted',WAITLISTED:'Waitlisted',REJECTED:'Rejected'};return'<span class="abadge '+(m[s]||'ab-sub')+'">'+(l[s]||s||'—')+'</span>';}
+function stageBadge(s){const m={SUBMITTED:'ab-sub',ADMIN_REVIEW:'ab-rev',PASSED_ADMIN:'ab-pass',FAILED_ADMIN:'ab-fail',INTERVIEW_DONE:'ab-int',ACCEPTED:'ab-acc',WAITLISTED:'ab-wait',REJECTED:'ab-rej',ACCEPTED_PENDING:'ab-int',WAITLISTED_PENDING:'ab-int',REJECTED_PENDING:'ab-int'};const l={SUBMITTED:'Submitted',ADMIN_REVIEW:'In Review',PASSED_ADMIN:'Passed Review',FAILED_ADMIN:'Failed Review',INTERVIEW_DONE:'Interview Done',ACCEPTED:'Accepted',WAITLISTED:'Waitlisted',REJECTED:'Rejected',ACCEPTED_PENDING:'Accepted — Pending Deploy',WAITLISTED_PENDING:'Waitlisted — Pending Deploy',REJECTED_PENDING:'Rejected — Pending Deploy'};return'<span class="abadge '+(m[s]||'ab-sub')+'">'+(l[s]||s||'—')+'</span>';}
 function gemBadge(r){if(!r)return'<span style="color:var(--text-light);font-size:12px">—</span>';const m={HIGHLY_RECOMMENDED:'ab-acc',RECOMMENDED:'ab-pass',REVIEW_NEEDED:'ab-wait',WAITLIST:'ab-wait',REJECTED:'ab-rej'};return'<span class="abadge '+(m[r]||'ab-sub')+'" style="font-size:11px">'+r.replace(/_/g,' ')+'</span>';}
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
 function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='hidden';}
@@ -1337,6 +1384,7 @@ window.addEventListener('DOMContentLoaded',()=>{
           <div class="adm-sidebar-sec">Admin</div>
           <div class="anav active" onclick="showAPage('dashboard')" id="nav-dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
           <div class="anav" onclick="showAPage('applicants')" id="nav-applicants"><i class="ti ti-users"></i> All Applicants</div>
+          <div class="anav" onclick="showAPage('pending-decisions')" id="nav-pending-decisions"><i class="ti ti-send"></i> Pending Decisions</div>
           <div class="anav" onclick="showAPage('programs')" id="nav-programs"><i class="ti ti-book-2"></i> Programme Eligibility</div>
           <div class="anav" onclick="showAPage('scholarships')" id="nav-scholarships"><i class="ti ti-award"></i> Scholarships</div>
           <div class="anav" onclick="showAPage('staff')" id="nav-staff"><i class="ti ti-user-plus"></i> Add Staff</div>
@@ -1408,6 +1456,24 @@ window.addEventListener('DOMContentLoaded',()=>{
                   <th>Name</th><th>Email</th><th>Country</th><th>Programme 1st</th><th>Status</th><th>Applied</th><th>Action</th>
                 </tr></thead>
                 <tbody id="tbody-applicants"><tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:24px">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== PENDING DECISIONS ===== -->
+        <div class="apage" id="apage-pending-decisions">
+          <div class="apage-title">Pending Decisions</div>
+          <div class="apage-sub">Head UGE has recorded these decisions. Review and deploy to notify applicants by email.</div>
+          <div class="tbl-wrap">
+            <div class="tbl-hdr">
+              <h3>Awaiting Deployment</h3>
+              <button class="bsm outline" onclick="loadPendingDecisions()"><i class="ti ti-refresh"></i> Refresh</button>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="at">
+                <thead><tr><th>Name</th><th>Country</th><th>Programme</th><th>Decision</th><th>Action</th></tr></thead>
+                <tbody id="tbody-pending-decisions"><tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:24px">Loading...</td></tr></tbody>
               </table>
             </div>
           </div>
