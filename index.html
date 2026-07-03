@@ -552,7 +552,7 @@ table.at input[type=checkbox]{accent-color:var(--navy);width:15px;height:15px;cu
           <div class="ff"><label data-t="l_prog2">Programme — 2nd Choice <span class="tag opt">Optional</span></label><select id="f_program_2"></select></div>
         </div>
         <div class="r2">
-          <div class="ff"><label data-t="l_fund">Source of Funding <span class="req">*</span></label><select id="f_funding_source" onchange="toggleSchol()"><option value="">— Select —</option><option value="Self-funded">Self-funded</option><option value="Family-sponsored">Family-sponsored</option><option value="UMB Scholarship">UMB Scholarship</option><option value="KNB Scholarship">KNB Scholarship (Government of Indonesia)</option><option value="Home Government Scholarship">Home Government Scholarship</option><option value="NGO/Foundation Scholarship">NGO / Foundation Scholarship</option><option value="Other Scholarship">Other Scholarship</option></select><div class="tip"><i class="ti ti-info-circle"></i><p data-t="t_fund">Select how your studies will be funded. If applying with a scholarship, please also upload your scholarship letter in the Documents section.</p></div></div>
+          <div class="ff"><label data-t="l_fund">Source of Funding <span class="req">*</span></label><select id="f_funding_source" onchange="toggleSchol()"><option value="">— Select —</option></select><div class="tip"><i class="ti ti-info-circle"></i><p data-t="t_fund">Select how your studies will be funded. If applying with a scholarship, please also upload your scholarship letter in the Documents section.</p></div></div>
           <div class="ff" id="schol_wrap" style="display:none"><label data-t="l_schol_name">Scholarship / Sponsor Name <span class="req">*</span></label><input type="text" id="f_scholarship_name" placeholder="Full name of scholarship or sponsoring organisation"></div>
         </div>
       </div>
@@ -815,6 +815,13 @@ async function loadEligibleProgs(){
     Object.keys(PROGS).forEach(f=>s.innerHTML+=`<option value="${f}">${f}</option>`);
   });
 }
+async function loadScholarshipOptions(){
+  const r=await api('get_active_scholarships',{});
+  const s=document.getElementById('f_funding_source');
+  s.innerHTML='<option value="">— Select —</option>';
+  const list=r.success?r.data:[];
+  list.forEach(label=>s.innerHTML+=`<option value="${label}">${label}</option>`);
+}
 function loadProgs(progId,facId){
   const f=document.getElementById(facId).value;
   const s=document.getElementById(progId);
@@ -823,7 +830,8 @@ function loadProgs(progId,facId){
 }
 function toggleSchol(){
   const v=document.getElementById('f_funding_source').value;
-  document.getElementById('schol_wrap').style.display=['UMB Scholarship','KNB Scholarship','Home Government Scholarship','NGO/Foundation Scholarship','Other Scholarship'].includes(v)?'':'none';
+  const noNameNeeded=['','Self-funded','Family-sponsored'];
+  document.getElementById('schol_wrap').style.display=noNameNeeded.includes(v)?'none':'';
 }
 function toggleVisit(){document.getElementById('visit_wrap').style.display=document.getElementById('f_visited_indonesia').value==='Yes'?'':'none';}
 function toggleVisa(){document.getElementById('visa_wrap').style.display=document.getElementById('f_visa_rejected').value==='Yes'?'':'none';}
@@ -1287,7 +1295,7 @@ function closeModal(id){document.getElementById(id).classList.remove('open');doc
 
 // ==================== INIT ====================
 window.addEventListener('DOMContentLoaded',()=>{
-  buildNats();buildYears();loadEligibleProgs();
+  buildNats();buildYears();loadEligibleProgs();loadScholarshipOptions();
   showSec('instructions');setStep(1);
 
   const staffRestored=restoreStaffSession();
